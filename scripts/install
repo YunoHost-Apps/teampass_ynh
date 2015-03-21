@@ -25,6 +25,9 @@ sudo yunohost app setting teampass mysqlpwd -v $db_pwd
 # Installation php5-mysqlnd
 sudo apt-get -y install php5-mysqlnd
 
+# Update php.ini
+sudo sed -i "s@max_execution_time = 30@max_execution_time = 60@g" /etc/php5/cli/php.ini
+
 # Copy source files
 final_path=/var/www/$app
 sudo mkdir -p $final_path
