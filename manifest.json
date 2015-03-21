@@ -1,0 +1,34 @@
+{
+    "name": "Teampass",
+    "id": "teampass",
+    "description": {
+        "fr": "Gestionnaire de mots de passes."
+    },
+    "licence": "GPL-3",
+    "developer": {
+        "name": "Ackak",
+        "email": "ackak_ynh@ackak.net"
+    },
+    "multi_instance": "false",
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "ask": {
+                    "en": "Choose a domain for Teampass",
+					"fr": "Choisissez un domaine pour Teampass"
+                },
+                "example": "domain.org"
+            },
+            {
+                "name": "path",
+                "ask": {
+                    "en": "Choose a path for Teampass",
+                    "fr": "Choisissez un chemin pour Teampass"
+                },
+                "example": "/teampass",
+                "default": "/teampass"
+            }
+        ]
+    }
+}
