@@ -32,7 +32,7 @@ sudo service php5-fpm restart
 # Copy source files
 final_path=/var/www/$app
 sudo mkdir -p $final_path
-sudo cp -a ../sources/* $final_path
+sudo tar -xzf ../sources/teampass.tgz -C $final_path
 sudo chown -R www-data: $final_path
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
