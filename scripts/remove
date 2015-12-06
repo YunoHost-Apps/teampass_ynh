@@ -11,11 +11,20 @@ sudo rm -rf /var/www/$app
 # Remove configuration files
 sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 
-db_user=teampass
-db_name=teampass
+#Remove the sk.php
+sudo rm -rf /etc/teampass/
+
+# Suppression de la config php-fpm
+sudo rm -f /etc/php5/fpm/pool.d/$app.conf
+sudo rm -f /etc/php5/fpm/conf.d/20-$app.ini
+
+db_user=$app
+db_name=$app
 root_pwd=$(sudo cat /etc/yunohost/mysql)
 mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
 
 # Restart services
 sudo service nginx reload
 sudo yunohost app ssowatconf
+sudo service php5-fpm reload
+

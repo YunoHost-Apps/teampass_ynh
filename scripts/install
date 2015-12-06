@@ -4,6 +4,7 @@ app=teampass
 # Retrieve arguments
 domain=$1
 path=$2
+password_admin=$3
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a $app
@@ -16,29 +17,114 @@ fi
 db_pwd=$(dd if=/dev/urandom bs=1 count=200 2> /dev/null | tr -c -d '[A-Za-z0-9]' | sed -n 's/\(.\{24\}\).*/\1/p')
 
 # Use 'teampass' as database name and user
-db_user=teampass
+db_user=$app
 
 # Initialize database and store mysql password for upgrade
 sudo yunohost app initdb $db_user -p $db_pwd
-sudo yunohost app setting teampass mysqlpwd -v $db_pwd
+sudo yunohost app setting $app mysqlpwd -v $db_pwd
 
 # Installation php5-mysqlnd
-sudo apt-get -y install php5-mysqlnd
-
-# Update php.ini
-sudo sed -i "s@max_execution_time = 30@max_execution_time = 60@g" /etc/php5/fpm/php.ini
-sudo service php5-fpm restart
+sudo apt-get update
+sudo apt-get -y install php5-cli
+# Le paquetage php5-mysqlnd est demandé lors de l'installation de teampass, mais qui semble être non utilisé
+#sudo apt-get -y install php5-mysqlnd
 
 # Copy source files
 final_path=/var/www/$app
 sudo mkdir -p $final_path
-sudo tar -xzf ../sources/teampass.tgz -C $final_path
+tar -xf ../sources/teampass.tar.gz
+sudo cp -a teampass/.* $final_path
+sudo cp ../conf/mdphash.php $final_path
 sudo chown -R www-data: $final_path
 
+# Modify php-fpm pool configuration and copy it to php-fpm pool directory for teampass
+sed -i "s@__NAMETOCHANGE__@$app@g" ../conf/php-fpm.conf
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/php-fpm.conf
+finalphpconf=/etc/php5/fpm/pool.d/$app.conf
+sudo cp ../conf/php-fpm.conf $finalphpconf
+sudo chown root: $finalphpconf
+finalphpini=/etc/php5/fpm/conf.d/20-$app.ini
+sudo cp ../conf/php-fpm.ini $finalphpini
+sudo chown root: $finalphpini
+sudo service php5-fpm reload
+
+# Remplacement des variables dans le fichier sql
+if [ $(echo $LANG | cut -c1-2) == "fr" ]
+then
+    langue=french
+	folders=partagés
+	roles=utilisateurs
+else
+    langue=english
+	folders=shared
+	roles=users
+fi
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/populate.sql
+sed -i "s@__DOMAIN__@$domain@g" ../conf/populate.sql
+sed -i "s@__PATH__@$path@g" ../conf/populate.sql
+sed -i "s@__FOLDERS__@$folders@g" ../conf/populate.sql
+sed -i "s@__ROLES__@$roles@g" ../conf/populate.sql
+sed -i "s@__VERSION__@$(cat $final_path/changelog.md | head -1)@g" ../conf/populate.sql
+sed -i "s@__TIMEZONE__@$(cat /etc/timezone)@g" ../conf/populate.sql
+sed -i "s@__BCRYPT_MDP__@$(php ../conf/mdphash.php $password_admin)@g" ../conf/populate.sql
+sed -i "s@__LANG__@$langue@g" ../conf/populate.sql
+
+# Add settings to YunoHost
+sudo yunohost app setting $app domain -v $domain
+sudo yunohost app setting $app path -v $path
+sudo yunohost app setting $app final_path -v $final_path
+sudo yunohost app setting $app langue -v $langue
+
+# Import du fichier SQL
+mysql -u $db_user -p$db_pwd $db_user < ../conf/populate.sql
+
+# Remplacement des variables dans les fichier settings.php et sk.php
+sed -i "s@__DBUSER__@$db_user@g" ../conf/settings.php
+sed -i "s@__DBPWD__@$db_pwd@g" ../conf/settings.php
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/settings.php
+path_sk_file=/etc/teampass/
+sudo mkdir $path_sk_file
+sed -i "s@__SKPATH__@$path_sk_file@g" ../conf/settings.php
+
+saltkey=$(dd if=/dev/urandom bs=1 count=200 2> /dev/null | tr -c -d '[A-Za-z0-9]' | sed -n 's/\(.\{32\}\).*/\1/p')
+sed -i "s@__SALTKEY__@$saltkey@g" ../conf/sk.php
+
+# Et copie des fichiers à leurs emplacements.
+sudo cp ../conf/sk.php $path_sk_file/sk.php
+sudo chown -R www-data:www-data $path_sk_file
+sudo chmod 770 $path_sk_file
+sudo cp ../conf/settings.php $final_path/includes/settings.php
+
+sudo chown www-data: -R $final_path
+sudo chmod 770 -R $final_path
+sudo find $final_path -type f -print0 | xargs -0 sudo chmod 740		# Applique les permissions sur les fichiers seulement (rwxr-----)
+sudo chmod 770 -R $final_path/files $final_path/upload
+
+# Delete the install directory. Si cette méthode d'install est validée, le dossier install devrait être retiré de l'archive initiale.
+sudo rm -r $final_path/install
+
 # Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
-sed -i "s@WWWPATH@$final_path@g" ../conf/nginx.conf
+sed -i "s@__PATHTOCHANGE__@$path@g" ../conf/nginx.conf
+sed -i "s@__WWWPATH__@$final_path@g" ../conf/nginx.conf
+sed -i "s@__NAMETOCHANGE__@$app@g" ../conf/nginx.conf
+
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Ajout des utilisateurs actuels dans la base yunohost
+teampass_users=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x objectClass=mailAccount uid | grep uid: | sed 's/uid: //' | xargs)
+id=1
+for teampassuser in $teampass_users
+do
+    password=$(php ../conf/mdphash.php $teampassuser)
+	mail=$(sudo ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
+	# Creation de l'utilisateur
+    mysql -u $db_user -p$db_pwd $db_user -e "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');"
+	# Creation du repertoire personnel
+	id_user=$(mysql -u $db_user -p$db_pwd $db_user -se "SELECT id from teampass_users where login='$teampassuser';")
+    mysql -u $db_user -p$db_pwd $db_user -e "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);"
+
+    ((id++))
+done
 
 # Restart services
 sudo service nginx reload
