@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS `teampass_items` (
 	`label` varchar(100) NOT NULL,
 	`description` text NOT NULL,
 	`pw` text NOT NULL,
+  	`pw_iv` text NOT NULL,
+  	`pw_len` int(5) NOT NULL,
 	`url` varchar(250) DEFAULT NULL,
 	`id_tree` varchar(10) DEFAULT NULL,
 	`perso` tinyint(1) NOT null DEFAULT '0',
@@ -28,8 +30,9 @@ CREATE TABLE IF NOT EXISTS `teampass_log_items` (
 	`id_item` int(8) NOT NULL,
 	`date` varchar(50) NOT NULL,
 	`id_user` int(8) NOT NULL,
-	`action` varchar(250) NOT NULL,
-	`raison` text NOT NULL
+  	`action` varchar(250) DEFAULT NULL,
+  	`raison` text,
+  	`raison_iv` text
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_misc` (
