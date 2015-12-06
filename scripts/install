@@ -64,7 +64,7 @@ sed -i "s@__DOMAIN__@$domain@g" ../conf/populate.sql
 sed -i "s@__PATH__@$path@g" ../conf/populate.sql
 sed -i "s@__FOLDERS__@$folders@g" ../conf/populate.sql
 sed -i "s@__ROLES__@$roles@g" ../conf/populate.sql
-sed -i "s@__VERSION__@$(cat $final_path/changelog.md | head -1)@g" ../conf/populate.sql
+sed -i "s@__VERSION__@$(sed -n 2p $final_path/changelog.md)@g" ../conf/populate.sql
 sed -i "s@__TIMEZONE__@$(cat /etc/timezone)@g" ../conf/populate.sql
 sed -i "s@__BCRYPT_MDP__@$(php ../conf/mdphash.php $password_admin)@g" ../conf/populate.sql
 sed -i "s@__LANG__@$langue@g" ../conf/populate.sql
