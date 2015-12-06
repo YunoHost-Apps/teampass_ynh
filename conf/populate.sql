@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `teampass_items` (
 	`id` int(12) NOT null AUTO_INCREMENT,
 	`label` varchar(100) NOT NULL,
 	`description` text NOT NULL,
-	`pw` text NOT NULL,
+	`pw` varchar(400) DEFAULT NULL,
   	`pw_iv` text NOT NULL,
   	`pw_len` int(5) NOT NULL,
 	`url` varchar(250) DEFAULT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `teampass_items` (
 CREATE TABLE IF NOT EXISTS `teampass_log_items` (
 	`id_item` int(8) NOT NULL,
 	`date` varchar(50) NOT NULL,
-	`id_user` int(8) NOT NULL,
+	`id_user` int(8) DEFAULT NULL,
   	`action` varchar(250) DEFAULT NULL,
   	`raison` text,
   	`raison_iv` text
@@ -142,7 +142,10 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin', 'offline_key_level', '50'),
 ('admin','default_session_expiration_time','60'),
 ('admin','bck_script_path','__FINALPATH__/backups/'),
-('complex','1','0');
+('complex','1','0'),
+('admin', 'menu_type', 'context'),
+('admin', 'duo', '0'),
+('update', 'encrypt_pw_in_log_items', '1');
 
 
 CREATE TABLE IF NOT EXISTS `teampass_nested_tree` (
@@ -178,20 +181,20 @@ CREATE TABLE IF NOT EXISTS `teampass_rights` (
 CREATE TABLE IF NOT EXISTS `teampass_users` (
 	`id` int(12) NOT null AUTO_INCREMENT,
 	`login` varchar(50) NOT NULL,
-	`pw` varchar(400) NOT NULL,
+	`pw` varchar(400) DEFAULT NULL,
 	`groupes_visibles` varchar(250) NOT NULL,
-	`derniers` text NOT NULL,
-	`key_tempo` varchar(100) NOT NULL,
-	`last_pw_change` varchar(30) NOT NULL,
-	`last_pw` text NOT NULL,
+	`derniers` text,
+	`key_tempo` varchar(100) DEFAULT NULL,
+	`last_pw_change` varchar(30) DEFAULT NULL,
+	`last_pw` text,
 	`admin` tinyint(1) NOT null DEFAULT '0',
-	`fonction_id` varchar(255) NOT NULL,
-	`groupes_interdits` varchar(255) NOT NULL,
-	`last_connexion` varchar(30) NOT NULL,
+	`fonction_id` varchar(255) DEFAULT NULL,
+	`groupes_interdits` varchar(255) DEFAULT NULL,
+	`last_connexion` varchar(30) DEFAULT NULL,
 	`gestionnaire` int(11) NOT null DEFAULT '0',
 	`email` varchar(300) NOT NULL,
-	`favourites` varchar(300) NOT NULL,
-	`latest_items` varchar(300) NOT NULL,
+	`favourites` varchar(300) DEFAULT NULL,
+	`latest_items` varchar(300) DEFAULT NULL,
 	`personal_folder` int(1) NOT null DEFAULT '0',
 	`disabled` tinyint(1) NOT null DEFAULT '0',
 	`no_bad_attempts` tinyint(1) NOT null DEFAULT '0',
@@ -205,8 +208,9 @@ CREATE TABLE IF NOT EXISTS `teampass_users` (
 	`isAdministratedByRole` tinyint(5) NOT null DEFAULT '0',
 	`psk` varchar(400) NULL,
 	`ga` varchar(50) NULL,
-	`avatar` varchar(255) NOT null,
-	`avatar_thumb` varchar(255) NOT null,
+	`avatar` varchar(255)  NOT NULL DEFAULT '',
+	`avatar_thumb` varchar(255) NOT NULL DEFAULT '',
+	`upgrade_needed` tinyint(1) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `login` (`login`)
 ) CHARSET=utf8;
@@ -251,9 +255,10 @@ CREATE TABLE IF NOT EXISTS `teampass_cache` (
 	`id_tree` int(12) NOT NULL,
 	`perso` tinyint(1) NOT NULL,
 	`restricted_to` varchar(200) NOT NULL,
-	`login` varchar(200) DEFAULT NULL,
+	`login` varchar(200) NOT NULL,
 	`folder` varchar(300) NOT NULL,
-	`author` varchar(50) NOT NULL
+	`author` varchar(50) NOT NULL,
+	`renewal_period` tinyint(4) NOT NULL DEFAULT '0'
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_roles_title` (
@@ -270,7 +275,7 @@ INSERT INTO teampass_roles_title VALUES("1","__ROLES__","0","0","1");
 CREATE TABLE IF NOT EXISTS `teampass_roles_values` (
 	`role_id` int(12) NOT NULL,
 	`folder_id` int(12) NOT NULL,
-	`type` varchar(1) NOT NULL DEFAULT 'R',
+	`type` varchar(5) NOT NULL DEFAULT 'R',
 	KEY `role_id_idx` (`role_id`)
 ) CHARSET=utf8;
 
@@ -298,8 +303,8 @@ CREATE TABLE IF NOT EXISTS `teampass_kb_items` (
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_restriction_to_roles` (
-	`role_id` int(12) NOT NULL,
-	`item_id` int(12) NOT NULL,
+	`role_id` int(12) DEFAULT NULL,
+	`item_id` int(12) DEFAULT NULL,
 	KEY `role_id_idx`  (`role_id`)
 ) CHARSET=utf8;
 
@@ -333,7 +338,8 @@ INSERT INTO `teampass_languages` (`name`, `label`, `code`, `flag`) VALUES
 ('chinese', 'Chinese' , 'cn', 'cn.png'),
 ('swedish', 'Swedish' , 'se', 'se.png'),
 ('dutch', 'Dutch' , 'nl', 'nl.png'),
-('catalan', 'Catalan' , 'ct', 'ct.png');
+('catalan', 'Catalan' , 'ct', 'ct.png'),
+('vietnamese', 'Vietnamese', 'vi', 'vi.png');
 
 CREATE TABLE IF NOT EXISTS `teampass_emails` (
 	`timestamp` INT(30) NOT null ,
@@ -363,7 +369,7 @@ CREATE TABLE IF NOT EXISTS `teampass_categories` (
 	`level` int(2) NOT NULL,
 	`description` text NOT NULL,
 	`type` varchar(50) NOT NULL,
-	`order` int(12) NOT NULL,
+	`order` int(12) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
@@ -372,6 +378,7 @@ CREATE TABLE IF NOT EXISTS `teampass_categories_items` (
 	`field_id` int(11) NOT NULL,
 	`item_id` int(11) NOT NULL,
 	`data` text NOT NULL,
+	`data_iv` text NOT NULL,
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
@@ -401,12 +408,13 @@ CREATE TABLE IF NOT EXISTS `teampass_otv` (
 CREATE TABLE IF NOT EXISTS `teampass_suggestion` (
 	`id` tinyint(12) NOT NULL AUTO_INCREMENT,
 	`label` varchar(255) NOT NULL,
-	`password` text NOT NULL,
+	`pw` text,
 	`description` text NOT NULL,
 	`author_id` int(12) NOT NULL,
 	`folder_id` int(12) NOT NULL,
 	`comment` text NOT NULL,
-	`suggestion_key` varchar(50) NOT NULL,
+	`pw_iv` text,
+	`pw_len` int(5) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
