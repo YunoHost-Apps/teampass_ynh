@@ -2,12 +2,14 @@
     "name": "Teampass",
     "id": "teampass",
     "description": {
+	"en": "Passwords Manager",
         "fr": "Gestionnaire de mots de passes."
     },
-    "licence": "GPL-3",
-    "developer": {
-        "name": "Ackak",
-        "email": "ackak_ynh@ackak.net"
+    "version": "2.1.23",
+    "url": "http://www.teampass.net",
+    "maintainer": {
+        "name": "Ackak, Maniack Crudelis et matlink",
+        "email": "ackak_ynh@ackak.net maniackc_dev@crudelis.fr matlink@matlink.fr"
     },
     "multi_instance": "false",
     "arguments": {
@@ -16,7 +18,7 @@
                 "name": "domain",
                 "ask": {
                     "en": "Choose a domain for Teampass",
-					"fr": "Choisissez un domaine pour Teampass"
+		    "fr": "Choisissez un domaine pour Teampass"
                 },
                 "example": "domain.org"
             },
@@ -28,6 +30,13 @@
                 },
                 "example": "/teampass",
                 "default": "/teampass"
+            },
+            {
+                "name": "password",
+                "ask": {
+                    "en": "Choose a password for the admin",
+                    "fr": "Choisissez un mot de passe pour l'administrateur"
+                }
             }
         ]
     }
