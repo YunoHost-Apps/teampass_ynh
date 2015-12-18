@@ -16,10 +16,8 @@ while read LIGNE
 do
 	if [ "$(echo "$LIGNE")" != "id;label;description;pw;login;restricted_to;perso" ]
 	then
-# 		if [ -z "${LIGNE:0:-1}" ] || [ "$(echo "${LIGNE: -4:-1}")" != ";;0" ]
 		if [ -z "$LIGNE" ] || [ "$(echo "${LIGNE: -3}")" != ";;0" ]		# Si la ligne ne se termine pas par ;;0. Le premier test prend uniqument les 3 derniers caractères, excepté le dernier qui est le retour chariot. Le second test vérifie si la ligne est vide, en ignorant le retour chariot.
 		then
-# 			echo -n "${LIGNE:0:-1}\\\\n" >> $MODFILE
 			echo -n "$LIGNE\\\\n" >> $MODFILE
 		else
 			echo $LIGNE >> $MODFILE
@@ -156,5 +154,5 @@ sed -i "s@\&nbsp|@\&#160;@g" "$XMLFILE"		#Espace insécable
 # Converti les & qui ne passent pas en l'état.
 # Mais avant de convertir les & isolés, il faut ignorer les &# correspondants aux codages de caractères.
 sed -i "s@\&#@#~#@g" "$XMLFILE"		# Remplace &# par #~#.
-sed -i "s@\&@\&#38;@g" "$XMLFILE"		# Replace les & isolés.
+sed -i "s@\&@\&#38;@g" "$XMLFILE"	# Remplace les & isolés.
 sed -i "s@#~#@\&#@g" "$XMLFILE"		# Restaure les &#.
