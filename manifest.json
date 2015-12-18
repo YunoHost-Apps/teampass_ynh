@@ -7,6 +7,7 @@
     },
     "version": "2.1.24.4",
     "url": "http://www.teampass.net",
+    "licence": "free",
     "maintainer": {
         "name": "Ackak, Maniack Crudelis et matlink",
         "email": "ackak_ynh@ackak.net maniackc_dev@crudelis.fr matlink@matlink.fr"

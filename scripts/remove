@@ -1,30 +1,33 @@
 #!/bin/bash
+
 app=teampass
 
-# Retrieve arguments
+# Récupère les infos de l'application.
+root_pwd=$(sudo cat /etc/yunohost/mysql)
 domain=$(sudo yunohost app setting $app domain)
-path=$(sudo yunohost app setting $app path)
 
-# Remove sources
+# Utilise '$app' comme nom d'utilisateur et de base de donnée
+db_user=$app
+mysql -u root -p$root_pwd -e "DROP DATABASE $db_user ; DROP USER $db_user@localhost ;"
+
+# Suppression du dossier de l'application
 sudo rm -rf /var/www/$app
-
-# Remove configuration files
-sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 
 #Remove the sk.php
 sudo rm -rf /etc/teampass/
 
-# Suppression de la config php-fpm
+# Suppression de la configuration nginx
+sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Suppression des log
+sudo rm -r /var/log/$app/
+
+# Suppression de la configuration du pool php-fpm
 sudo rm -f /etc/php5/fpm/pool.d/$app.conf
 sudo rm -f /etc/php5/fpm/conf.d/20-$app.ini
 
-db_user=$app
-db_name=$app
-root_pwd=$(sudo cat /etc/yunohost/mysql)
-mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
-
-# Restart services
+# Recharge la configuration Nginx et php5-fpm
 sudo service nginx reload
-sudo yunohost app ssowatconf
 sudo service php5-fpm reload
-
+# Régénère la configuration de SSOwat
+sudo yunohost app ssowatconf
