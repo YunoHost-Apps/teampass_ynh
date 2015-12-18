@@ -100,6 +100,7 @@ sudo chown www-data: -R $final_path
 sudo chmod 770 -R $final_path
 sudo find $final_path -type f -print0 | xargs -0 sudo chmod 740		# Applique les permissions sur les fichiers seulement (rwxr-----)
 sudo chmod 770 -R $final_path/files $final_path/upload
+sudo chmod a+x $final_path/CsvToXml_For_Teampass.sh
 
 # Delete the install directory. Si cette méthode d'install est validée, le dossier install devrait être retiré de l'archive initiale.
 sudo rm -r $final_path/install
