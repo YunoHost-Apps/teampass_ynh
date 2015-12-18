@@ -12,6 +12,7 @@ path=${path%/}
 # Copy source files
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
+sudo cp -a ../sources/ajouts/.* $final_path
 
 # Modify php-fpm pool configuration and copy it to php-fpm pool directory for teampass
 sed -i "s@__NAMETOCHANGE__@$app@g" ../conf/php-fpm.conf
