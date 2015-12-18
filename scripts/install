@@ -34,6 +34,7 @@ final_path=/var/www/$app
 sudo mkdir -p $final_path
 tar -xf ../sources/teampass.tar.gz
 sudo cp -a teampass/.* $final_path
+sudo cp -a ../sources/ajouts/.* $final_path
 sudo cp ../conf/mdphash.php $final_path
 sudo chown -R www-data: $final_path
 
