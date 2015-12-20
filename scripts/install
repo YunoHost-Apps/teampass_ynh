@@ -59,11 +59,13 @@ sudo cp -a teampass/. "$final_path"
 sudo cp -a ../sources/ajouts/. "$final_path"
 # Et copie le fichier de config nginx
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+# Delete the install directory.
+sudo rm -r $final_path/install
 
 
 # Modifie les variables dans le fichier de configuration nginx
 sudo sed -i "s@__PATHTOCHANGE__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
+sudo sed -i "s@__WWWPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
 sudo sed -i "s@__NAMETOCHANGE__@$app@g" /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Créer le fichier de configuration du pool php-fpm et le configure.
@@ -78,9 +80,9 @@ sudo chown root: $finalphpini
 sudo service php5-fpm reload
 
 
-# Installation php5-mysqlnd
-sudo apt-get update
-sudo apt-get -y install php5-cli
+# Installation de php5-cli
+# sudo apt-get update
+# sudo apt-get -y install php5-cli
 
 # Copie du script contenant la fonction bCrypt
 sudo cp ../conf/mdphash.php $final_path
@@ -125,13 +127,9 @@ sed -i "s@__SALTKEY__@$saltkey@g" ../conf/sk.php
 
 # Et copie des fichiers à leurs emplacements.
 sudo cp ../conf/sk.php $path_sk_file/sk.php
-sudo chown -R www-data:www-data $path_sk_file
-sudo chmod 770 $path_sk_file
+sudo chown -R root:www-data $path_sk_file
+sudo chmod 750 $path_sk_file
 sudo cp ../conf/settings.php $final_path/includes/settings.php
-
-
-# Delete the install directory. Si cette méthode d'install est validée, le dossier install devrait être retiré de l'archive initiale.
-sudo rm -r $final_path/install
 
 
 # Ajout des utilisateurs actuels dans la base yunohost
@@ -150,12 +148,6 @@ do
     ((id++))
 done
 
-
-# sudo chown www-data: -R $final_path
-# sudo chmod 770 -R $final_path
-# sudo find $final_path -type f -print0 | xargs -0 sudo chmod 740		# Applique les permissions sur les fichiers seulement (rwxr-----)
-# sudo chmod 770 -R $final_path/files $final_path/upload
-# sudo chmod a+x $final_path/CsvToXml_For_Teampass.sh
 
 # Configure les droits d'accès au fichiers
 # -rw-r----- sur les fichiers
