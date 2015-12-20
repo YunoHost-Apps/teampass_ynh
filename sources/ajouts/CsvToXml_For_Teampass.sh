@@ -11,16 +11,16 @@ XMLFILE=$(basename -s csv "$1")xml	# Retire l"extension csv pour la remplacer pa
 
 # Méthode peut-être douteuse, mais correct sur tout mes exports. Les lignes se terminent par ;;0
 # C'est donc un moyen de reconstituer les lignes.
-> $MODFILE	# Vide ou crée le fichier MODFILE.
+> "$MODFILE"	# Vide ou crée le fichier MODFILE.
 while read LIGNE
 do
 	if [ "$(echo "$LIGNE")" != "id;label;description;pw;login;restricted_to;perso" ]
 	then
 		if [ -z "$LIGNE" ] || [ "$(echo "${LIGNE: -3}")" != ";;0" ]		# Si la ligne ne se termine pas par ;;0. Le premier test prend uniqument les 3 derniers caractères, excepté le dernier qui est le retour chariot. Le second test vérifie si la ligne est vide, en ignorant le retour chariot.
 		then
-			echo -n "$LIGNE\\\\n" >> $MODFILE
+			echo -n "$LIGNE\\\\n" >> "$MODFILE"
 		else
-			echo $LIGNE >> $MODFILE
+			echo "$LIGNE" >> "$MODFILE"
 		fi
 	fi
 done < "$1"
@@ -156,3 +156,5 @@ sed -i "s@\&nbsp|@\&#160;@g" "$XMLFILE"		#Espace insécable
 sed -i "s@\&#@#~#@g" "$XMLFILE"		# Remplace &# par #~#.
 sed -i "s@\&@\&#38;@g" "$XMLFILE"	# Remplace les & isolés.
 sed -i "s@#~#@\&#@g" "$XMLFILE"		# Restaure les &#.
+
+rm "$MODFILE"
