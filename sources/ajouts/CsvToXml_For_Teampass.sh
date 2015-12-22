@@ -16,7 +16,8 @@ while read LIGNE
 do
 	if [ "$(echo "$LIGNE")" != "id;label;description;pw;login;restricted_to;perso" ]
 	then
-		if [ -z "$LIGNE" ] || [ "$(echo "${LIGNE: -3}")" != ";;0" ]		# Si la ligne ne se termine pas par ;;0. Le premier test prend uniqument les 3 derniers caractères, excepté le dernier qui est le retour chariot. Le second test vérifie si la ligne est vide, en ignorant le retour chariot.
+# 		if [ -z "$LIGNE" ] || [ "$(echo "${LIGNE: -3}")" != ";;{0-9}" ]		# Si la ligne ne se termine pas par ;;0. Le premier test prend uniqument les 3 derniers caractères, excepté le dernier qui est le retour chariot. Le second test vérifie si la ligne est vide, en ignorant le retour chariot.
+		if [[ "$LIGNE" =~ ";;[0-9]$" ]]
 		then
 			echo -n "$LIGNE\\\\n" >> "$MODFILE"
 		else
