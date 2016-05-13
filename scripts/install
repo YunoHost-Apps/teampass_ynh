@@ -130,6 +130,8 @@ sudo cp ../conf/sk.php $path_sk_file/sk.php
 sudo chown -R root:www-data $path_sk_file
 sudo chmod 750 $path_sk_file
 sudo cp ../conf/settings.php $final_path/includes/settings.php
+sudo cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php
+
 
 
 # Ajout des utilisateurs actuels dans la base yunohost
