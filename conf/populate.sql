@@ -5,25 +5,23 @@ ALTER DATABASE `teampass` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `teampass`;
 
 CREATE TABLE IF NOT EXISTS `teampass_items` (
-	`id` int(12) NOT null AUTO_INCREMENT,
+	`id` int(12) NOT NULL,
 	`label` varchar(100) NOT NULL,
 	`description` text NOT NULL,
-	`pw` varchar(400) DEFAULT NULL,
+	`pw` text,
   	`pw_iv` text NOT NULL,
   	`pw_len` int(5) NOT NULL,
 	`url` varchar(250) DEFAULT NULL,
 	`id_tree` varchar(10) DEFAULT NULL,
-	`perso` tinyint(1) NOT null DEFAULT '0',
+	`perso` tinyint(1) NOT NULL DEFAULT '0',
 	`login` varchar(200) DEFAULT NULL,
-	`inactif` tinyint(1) NOT null DEFAULT '0',
+	`inactif` tinyint(1) NOT NULL DEFAULT '0',
 	`restricted_to` varchar(200) NOT NULL,
-	`anyone_can_modify` tinyint(1) NOT null DEFAULT '0',
+	`anyone_can_modify` tinyint(1) NOT NULL DEFAULT '0',
 	`email` varchar(100) DEFAULT NULL,
 	`notification` varchar(250) DEFAULT NULL,
-	`viewed_no` int(12) NOT null DEFAULT '0',
-	`complexity_level` varchar(2) NOT null DEFAULT '-1',
-	PRIMARY KEY (`id`),
-	KEY	`restricted_inactif_idx` (`restricted_to`,`inactif`)
+	`viewed_no` int(12) NOT NULL DEFAULT '0',
+	`complexity_level` varchar(2) NOT NULL DEFAULT '-1'
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_log_items` (
