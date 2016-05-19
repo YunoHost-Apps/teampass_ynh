@@ -13,3 +13,8 @@ Teampass peut-être configuré uniquement via le compte administrateur. Pour cel
 
 Pour utiliser la fonction de sauvegarde automatique, il est nécessaire de mettre en place un cron contenant ceci dans /etc/cron.d/teampass:
 ```0 0 * * * www-data cd /var/www/teampass/backups && php script.backup.php```
+
+Mise à jour du package:
+sudo yunohost app upgrade -u https://github.com/Ackak/teampass_ynh
+
+Multi-utilisateur: Oui, avec support ldap.

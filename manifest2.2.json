@@ -2,9 +2,6 @@
     "name": "Teampass",
     "id": "teampass",
     "packaging_format": 1,
-    "requirements": {
-        "yunohost": ">= 2.4"
-    },
     "description": {
 	"en": "Passwords Manager",
         "fr": "Gestionnaire de mots de passes."
