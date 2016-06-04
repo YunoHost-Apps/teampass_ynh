@@ -19,6 +19,11 @@ else
 	app=teampass
 fi
 
+# Checks variables are not empty
+test -z "$domain" && (echo "domain not set" && touch /force_stop)
+test -z "$path" && (echo "path not set" && touch /force_stop)
+test -z "$password_admin" && (echo "password_admin not set" && touch /force_stop)
+
 
 # Delete files and db if exit with an error
 EXIT_PROPERLY () {
