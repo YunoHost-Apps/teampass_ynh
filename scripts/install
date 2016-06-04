@@ -50,14 +50,11 @@ fi
 
 # Vérifie la disponibilité du path et du domaine.
 sudo yunohost app checkurl $domain$path -a $app
-if [[ ! $? -eq 0 ]]; then
-    touch /force_stop
-fi
 
 # Vérifie que le mot de passe n'est pas vide.
 if [[ -z $password_admin ]]; then
 	echo "Mot de passe incorrect"
-    touch /force_stop
+    touch /force_stop 2> /dev/null
 fi
 
 # Vérifie que le dossier de destination n'est pas déjà utilisé.
@@ -65,7 +62,7 @@ final_path=/var/www/$app
 if [ -e "$final_path" ]
 then
     echo "This path already contains a folder"
-    touch /force_stop
+    touch /force_stop 2> /dev/null
 fi
 
 
