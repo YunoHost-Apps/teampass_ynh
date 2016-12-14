@@ -1,130 +1,59 @@
 #!/bin/bash
 
-ynh_version=$(sudo yunohost -v | grep "moulinette:" | cut -d' ' -f2 | cut -d'.' -f1,2)
-# Retrieve arguments
-if [ $ynh_version = "2.4" ]
-then
-	domain=$YNH_APP_ARG_DOMAIN
-	path=$YNH_APP_ARG_PATH
-	password_admin=$YNH_APP_ARG_PASSWORD
+source .fonctions	# Charge les fonctions génériques habituellement utilisées dans le script
 
-	app=$YNH_APP_INSTANCE_NAME
-
-	# Source app helpers
-	source /usr/share/yunohost/helpers
-else
-	domain=$1
-	path=$2
-	password_admin=$3
-	app=teampass
-fi
-
-# Checks variables are not empty
-test -z "$domain" && (echo "domain not set" && touch /force_stop)
-test -z "$path" && (echo "path not set" && touch /force_stop)
-test -z "$password_admin" && (echo "password_admin not set" && touch /force_stop)
-
-
-# Delete files and db if exit with an error
-EXIT_PROPERLY () {
-	trap '' ERR
-	echo -e "\e[91m \e[1m"	# Shell in light red bold
-	echo -e "!!\n  $app install's script has encountered an error. Installation was cancelled.\n!!"
-
-	if [ $ynh_version = "2.2" ]; then
-		/bin/bash ./remove	# Appel le script remove. En 2.2, ce comportement n'est pas automatique.
-	fi
-	exit 1
+CLEAN_SETUP () {
+# Nettoyage des résidus d'installation non pris en charge par le script remove.
+# Pas de nettoyage supplémentaire nécessaire ici...
+	echo ""
 }
-TRAP_ON () {	# Activate signal capture
-	trap EXIT_PROPERLY ERR	# Capturing exit signals on error
-}
-TRAP_OFF () {	# Ignoring signal capture until TRAP_ON
-# Pour une raison que j'ignore, la fonction TRAP_ON fonctionne très bien.
-# Mais pas la fonction TRAP_OFF...
-# Utiliser directement `trap '' ERR` dans le code pour l'utiliser, à la place de la fonction.
-	trap '' ERR	# Ignoring exit signals
-}
-TRAP_ON
+TRAP_ON	# Active trap pour arrêter le script si une erreur est détectée.
 
+domain=$YNH_APP_ARG_DOMAIN
+path=$YNH_APP_ARG_PATH
+password_admin=$YNH_APP_ARG_PASSWORD
 
-# Vérifie la présence du / en début de path
-if [ $(echo $path | cut -c1) != "/" ]; then
-    path="/$path"
-fi
+app=$YNH_APP_INSTANCE_NAME
 
-# Vérifie la disponibilité du path et du domaine.
-sudo yunohost app checkurl $domain$path -a $app
+# Source app helpers
+source /usr/share/yunohost/helpers
 
-# Vérifie que le mot de passe n'est pas vide.
-if [[ -z $password_admin ]]; then
-	echo "Mot de passe incorrect"
-    touch /force_stop 2> /dev/null
-fi
+# Vérifie que les variables ne sont pas vides.
+CHECK_VAR "$app" "app name not set"
 
-# Vérifie que le dossier de destination n'est pas déjà utilisé.
-final_path=/var/www/$app
-if [ -e "$final_path" ]
-then
-    echo "This path already contains a folder"
-    touch /force_stop 2> /dev/null
-fi
+CHECK_PATH	# Vérifie et corrige la syntaxe du path.
+CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
+
+CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
 
 
 # Enregistre les infos dans la config YunoHost
-sudo yunohost app setting $app domain -v $domain
-sudo yunohost app setting $app path -v $path
+ynh_app_setting_set $app domain $domain
+ynh_app_setting_set $app path $path
+
+GENERATE_DB $app	# Créer une base de données et un utilisateur dédié au nom de l'app.
 
 
-# Génère un mot de passe aléatoire.
-db_pwd=$(head -n20 /dev/urandom | tr -c -d 'A-Za-z0-9' | head -c20)
-# Utilise '$app' comme nom d'utilisateur et de base de donnée
-db_user=$app
-# Initialise la base de donnée et stocke le mot de passe mysql.
-if [ $ynh_version = "2.4" ]; then
-	ynh_mysql_create_db $db_user $db_user $db_pwd
-else
-	sudo yunohost app initdb $db_user -p $db_pwd
-fi
-sudo yunohost app setting $app mysqlpwd -v $db_pwd
-
-
-# Crée le repertoire de destination et stocke son emplacement.
+# Créer le repertoire de destination et stocke son emplacement.
 sudo mkdir "$final_path"
-sudo yunohost app setting $app final_path -v $final_path
+ynh_app_setting_set $app final_path $final_path
 
-# Décompresse la source
-tar -x -f ../sources/teampass.tar.gz
-# Copie les fichiers sources
-sudo cp -a teampass/. "$final_path"
-# Copie les fichiers additionnels ou modifiés.
-sudo cp -a ../sources/ajouts/. "$final_path"
+SETUP_SOURCE "teampass.tar.gz"	# Télécharge la source, décompresse et copie dans $final_path
+
+# Delete the install directory.
+# SECURE_REMOVE '$final_path/install'
+
 # Et copie le fichier de config nginx
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-# Delete the install directory.
-sudo rm -r $final_path/install
 
 
 # Modifie les variables dans le fichier de configuration nginx
-sudo sed -i "s@__PATHTOCHANGE__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__WWWPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
+sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
+sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
 sudo sed -i "s@__NAMETOCHANGE__@$app@g" /etc/nginx/conf.d/$domain.d/$app.conf
 
-# Créer le fichier de configuration du pool php-fpm et le configure.
-sed -i "s@__NAMETOCHANGE__@$app@g" ../conf/php-fpm.conf
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/php-fpm.conf
-finalphpconf=/etc/php5/fpm/pool.d/$app.conf
-sudo cp ../conf/php-fpm.conf $finalphpconf
-sudo chown root: $finalphpconf
-finalphpini=/etc/php5/fpm/conf.d/20-$app.ini
-sudo cp ../conf/php-fpm.ini $finalphpini
-sudo chown root: $finalphpini
-sudo service php5-fpm reload
-
-
-# Installation de php5-cli
-# sudo apt-get update
-# sudo apt-get -y install php5-cli
+ADD_SYS_USER	# Créer un user système dédié pour l'application
+POOL_FPM	# Créer le fichier de configuration du pool php-fpm et le configure.
 
 # Copie du script contenant la fonction bCrypt
 sudo cp ../conf/mdphash.php $final_path
@@ -145,13 +74,13 @@ sed -i "s@__DOMAIN__@$domain@g" ../conf/populate.sql
 sed -i "s@__PATH__@$path@g" ../conf/populate.sql
 sed -i "s@__FOLDERS__@$folders@g" ../conf/populate.sql
 sed -i "s@__ROLES__@$roles@g" ../conf/populate.sql
-sed -i "s@__VERSION__@$(sed -n 2p $final_path/changelog.md)@g" ../conf/populate.sql
+sed -i "s@__VERSION__@$(sed -n 3p $final_path/changelog.md)@g" ../conf/populate.sql
 sed -i "s@__TIMEZONE__@$(cat /etc/timezone)@g" ../conf/populate.sql
 sed -i "s@__BCRYPT_MDP__@$(php ../conf/mdphash.php $password_admin)@g" ../conf/populate.sql
 sed -i "s@__LANG__@$langue@g" ../conf/populate.sql
 
 # Enregistre les infos dans la config YunoHost
-sudo yunohost app setting $app langue -v $langue
+ynh_app_setting_set $app langue $langue
 
 # Import du fichier SQL
 mysql -u $db_user -p$db_pwd $db_user < ../conf/populate.sql
@@ -169,18 +98,21 @@ sed -i "s@__SALTKEY__@$saltkey@g" ../conf/sk.php
 
 # Et copie des fichiers à leurs emplacements.
 sudo cp ../conf/sk.php $path_sk_file/sk.php
-sudo chown -R root:www-data $path_sk_file
+sudo chown -R root:$app $path_sk_file
 sudo chmod 750 $path_sk_file
-sudo cp ../conf/settings.php $final_path/includes/settings.php
-sudo cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php
-
+sudo cp ../conf/settings.php $final_path/includes/config/settings.php
+STORE_MD5_CONFIG "settings.php" "$final_path/includes/config/settings.php"	# Enregistre la somme de contrôle du fichier de config
+sudo cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+sed -i "s@CSRFP_TOKEN\" => \"@&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)@g" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+sed -i "s@jsUrl\" => \"@&$domain$path/includes/libraries/csrfp/js/csrfprotector.js@g" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 
 # Ajout des utilisateurs actuels dans la base yunohost
 teampass_users=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x objectClass=mailAccount uid | grep uid: | sed 's/uid: //' | xargs)
 id=1
 for teampassuser in $teampass_users
 do
-    password=$(php ../conf/mdphash.php $teampassuser)
+	real_password=$(ynh_string_random)	# Génère un mot de passe aléatoire
+    password=$(php ../conf/mdphash.php $real_password)
 	mail=$(sudo ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
 	# Creation de l'utilisateur
     mysql -u $db_user -p$db_pwd $db_user -e "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');"
@@ -193,16 +125,16 @@ done
 
 
 # Configure les droits d'accès au fichiers
-# -rw-r----- sur les fichiers
-sudo find $final_path -type f -print0 | xargs -0 sudo chmod 640
-# drwxr-x--- sur les dossiers
-sudo find $final_path -type d -print0 | xargs -0 sudo chmod 750
+# -rw-r--r-- sur les fichiers
+sudo find $final_path -type f -print0 | xargs -0 sudo chmod 644
+# drwxr-xr-x sur les dossiers
+sudo find $final_path -type d -print0 | xargs -0 sudo chmod 755
 # Les dossiers files et upload ont besoin d'un droit d'écriture.
-sudo chmod 770 -R $final_path/files $final_path/upload
+sudo chmod 774 -R $final_path/files $final_path/upload
 # Le script de conversion csv xml doit être exécutable, au moins par root.
-sudo chmod 740 $final_path/CsvToXml_For_Teampass.sh
-# Les fichiers appartiennent à root et sont lisibles par www-data
-sudo chown -R root:www-data $final_path
+sudo chmod 744 $final_path/CsvToXml_For_Teampass.sh
+# Les fichiers appartiennent à root
+sudo chown -R root:$app $final_path
 
 # Recharge la configuration Nginx
 sudo service nginx reload

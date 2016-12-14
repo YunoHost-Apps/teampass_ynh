@@ -4,7 +4,9 @@ user=$1
 root_pwd=$(sudo cat /etc/yunohost/mysql)
 db_user=root
 db_name=teampass
-password=$(sudo php /var/www/teampass/mdphash.php $user)
+real_password=$(ynh_string_random)	# Génère un mot de passe aléatoire
+password=$(sudo php /var/www/teampass/mdphash.php $real_password)
+
 
 mail=$(sudo ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$user mail | grep mail: | sed 's/mail: //' | head -n1)
 

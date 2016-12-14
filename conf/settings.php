@@ -12,6 +12,6 @@ $port = 3306;
 $encoding = "utf8";
 
 @date_default_timezone_set($_SESSION['settings']['timezone']);
-@define('SECUREPATH', '__FINALPATH__');
+@define('SECUREPATH', '__FINALPATH__/includes');
 require_once "__SKPATH__sk.php";
 ?>
