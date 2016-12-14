@@ -1,53 +1,57 @@
 {
-    "name": "Teampass",
-    "id": "teampass",
-    "packaging_format": 1,
-    "requirements": {
-        "yunohost": ">= 2.4"
-    },
-    "description": {
-	"en": "Passwords Manager",
-        "fr": "Gestionnaire de mots de passes."
-    },
-    "version": "2.1.24.4",
-    "url": "http://www.teampass.net",
-    "licence": "free",
-    "maintainer": {
-        "name": "Ackak, Maniack Crudelis et matlink",
-        "email": "ackak_ynh@ackak.net maniackc_dev@crudelis.fr matlink@matlink.fr"
-    },
-    "multi_instance": "false",
-    "services": [
-        "nginx",
-        "php5-fpm",
-        "mysql"
-    ],
-    "arguments": {
-        "install" : [
-            {
-                "name": "domain",
-                "ask": {
-                    "en": "Choose a domain for Teampass",
-		    "fr": "Choisissez un domaine pour Teampass"
-                },
-                "example": "domain.org"
-            },
-            {
-                "name": "path",
-                "ask": {
-                    "en": "Choose a path for Teampass",
-                    "fr": "Choisissez un chemin pour Teampass"
-                },
-                "example": "/teampass",
-                "default": "/teampass"
-            },
-            {
-                "name": "password",
-                "ask": {
-                    "en": "Choose a password for the admin",
-                    "fr": "Choisissez un mot de passe pour l'administrateur"
-                }
-            }
-        ]
-    }
+	"name": "Teampass",
+	"id": "teampass",
+	"packaging_format": 1,
+	"requirements": {
+		"yunohost": ">= 2.4"
+	},
+	"description": {
+		"en": "Passwords Manager",
+		"fr": "Gestionnaire de mots de passes."
+	},
+	"version": "2.1.26-3",
+	"url": "http://www.teampass.net",
+	"license": "free",
+	"maintainer": {
+		"name": "Ackak, Maniack Crudelis et matlink",
+		"email": "ackak_ynh@ackak.net maniackc_dev@crudelis.fr matlink@matlink.fr"
+	},
+	"multi_instance": false,
+	"services": [
+		"nginx",
+		"php5-fpm",
+		"mysql"
+	],
+	"arguments": {
+		"install" : [
+			{
+				"name": "domain",
+				"type": "domain",
+				"ask": {
+					"en": "Choose a domain for Teampass",
+					"fr": "Choisissez un domaine pour Teampass"
+				},
+				"example": "domain.org"
+			},
+			{
+				"name": "path",
+				"type": "path",
+				"ask": {
+					"en": "Choose a path for Teampass",
+					"fr": "Choisissez un chemin pour Teampass"
+				},
+				"example": "/teampass",
+				"default": "/teampass"
+			},
+			{
+				"name": "password",
+				"type": "password",
+				"ask": {
+					"en": "Choose a password for the admin",
+					"fr": "Choisissez un mot de passe pour l'administrateur"
+				},
+				"example": "Choose a password"
+			}
+		]
+	}
 }

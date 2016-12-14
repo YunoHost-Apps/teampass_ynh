@@ -1,14 +1,12 @@
 #!/bin/bash
 
 # Récupère les infos de l'application.
-ynh_version=$(sudo yunohost -v | grep "moulinette:" | cut -d' ' -f2 | cut -d'.' -f1,2)
-if [ $ynh_version = "2.4" ]; then
-	app=$YNH_APP_INSTANCE_NAME
-else
-	app=teampass
-fi
-final_path=$(sudo yunohost app setting $app final_path)
-domain=$(sudo yunohost app setting $app domain)
+app=$YNH_APP_INSTANCE_NAME
+
+# Source app helpers
+source /usr/share/yunohost/helpers
+final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
 
 
 # The parameter $1 is the backup directory location
@@ -26,6 +24,10 @@ sudo cp -a /etc/nginx/conf.d/$domain.d/$app.conf $backup_dir/nginx.conf
 # Copy dedicated php-fpm process to backup folder
 sudo cp -a /etc/php5/fpm/pool.d/$app.conf $backup_dir/php-fpm.conf
 sudo cp -a /etc/php5/fpm/conf.d/20-$app.ini $backup_dir/php-fpm.ini
+
+# Backup db
+root_pwd=$(sudo cat /etc/yunohost/mysql)
+sudo mysqldump -u root -p$root_pwd --no-create-db $app --result-file="$backup_dir/db.sql"
 
 # Copie du fichier sk.php
 sudo cp -a /etc/teampass/sk.php $backup_dir/sk.php
