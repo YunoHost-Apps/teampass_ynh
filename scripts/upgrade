@@ -1,53 +1,93 @@
 #!/bin/bash
 
-source .fonctions	# Charge les fonctions génériques habituellement utilisées dans le script
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Récupère les infos de l'application.
-app=$YNH_APP_INSTANCE_NAME
-
-# Source app helpers
+source _common.sh
 source /usr/share/yunohost/helpers
 
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
 domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
+path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 
-CHECK_PATH	# Vérifie et corrige la syntaxe du path.
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
 
-SETUP_SOURCE "teampass.tar.gz"	# Télécharge la source, décompresse et copie dans $final_path
+BACKUP_BEFORE_UPGRADE	# Backup the current version of the app
+ynh_clean_setup () {
+	BACKUP_FAIL_UPGRADE	# restore it if the upgrade fails
+}
+ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
 
-# Delete the install directory.
-SECURE_REMOVE '$final_path/install'
+#=================================================
+# CHECK THE PATH
+#=================================================
 
-# Et copie le fichier de config nginx
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
 
-# Modifie les variables dans le fichier de configuration nginx
-sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__NAMETOCHANGE__@$app@g" /etc/nginx/conf.d/$domain.d/$app.conf
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
 
-ADD_SYS_USER	# Créer un user système dédié pour l'application
-POOL_FPM	# Créer le fichier de configuration du pool php-fpm et le configure.
+ynh_setup_source "$final_path"	# Télécharge la source, décompresse et copie dans $final_path
 
-# sudo chown www-data: -R $final_path
-# sudo chmod 770 -R $final_path
-# sudo find $final_path -type f -print0 | xargs -0 sudo chmod 740		# Applique les permissions sur les fichiers seulement (rwxr-----)
-# sudo chmod 770 -R $final_path/files $final_path/upload
-# sudo chmod a+x $final_path/CsvToXml_For_Teampass.sh
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
 
-# -rw-r--r-- sur les fichiers
-sudo find $final_path -type f -print0 | xargs -0 sudo chmod 644
-# drwxr-xr-x sur les dossiers
-sudo find $final_path -type d -print0 | xargs -0 sudo chmod 755
-# Les dossiers files et upload ont besoin d'un droit d'écriture.
-sudo chmod 774 -R $final_path/files $final_path/upload
-# Le script de conversion csv xml doit être exécutable, au moins par root.
-sudo chmod 744 $final_path/CsvToXml_For_Teampass.sh
+ynh_add_nginx_config
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $app	# Create the dedicated user, if not exist
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# ...
+#=================================================
+
+#=================================================
+# CREATE A CRON FILE FOR AUTOMATIC BACKUP
+#=================================================
+
+echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/teampass
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# SECURING FILES AND DIRECTORIES
+#=================================================
+
 # Les fichiers appartiennent à root
 sudo chown -R root: $final_path
+# Sauf les dossiers files et upload
+sudo chown -R $app: $final_path/files $final_path/upload
+# Restreint l'accès au dossier de backup
+sudo chmod 750 $final_path/backups
 
-# Recharge la configuration Nginx
-sudo service nginx reload
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+sudo systemctl reload nginx

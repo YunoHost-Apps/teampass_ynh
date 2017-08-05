@@ -72,7 +72,8 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin','enable_sts','0'),
 ('admin','encryptClientServer','1'),
 ('admin','cpassman_version','__VERSION__'),
--- ('admin','ldap_mode','1'),	-- ldap est cassé sur la version 2.1.26-3
+-- ('admin','ldap_mode','1'),
+-- ldap ne fonctionne plus sur cette version de teampass...
 ('admin','ldap_mode','0'),
 ('admin','ldap_type','posix-search'),
 ('admin','ldap_suffix','0'),
@@ -141,18 +142,11 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin','show_only_accessible_folders','1'),
 ('admin','enable_suggestion','0'),
 ('admin','otv_expiration_period','7'),
--- 	('admin', 'timezone', '__TIMEZONE__'),
--- 	('admin', 'can_create_root_folder', '1'),
--- 	('admin', 'settings_offline_mode', '1'),
--- 	('admin', 'offline_key_level', '50'),
 ('admin','default_session_expiration_time','60'),
-('admin','bck_script_path','__FINALPATH__/backups/'),
--- 	('complex','1','0'),
--- 	('admin', 'menu_type', 'context'),
 ('admin', 'duo', '0'),
--- 	('update', 'encrypt_pw_in_log_items', '1');
 ('admin','enable_server_password_change','0'),
 ('admin','ldap_object_class','0'),
+('admin','bck_script_path','__FINALPATH__/backups/'),
 ('admin','bck_script_filename', 'bck_cpassman'),
 ('admin','syslog_enable','0'),
 ('admin','syslog_host','localhost'),
@@ -178,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `teampass_nested_tree` (
 	KEY `personal_folder_idx` (`personal_folder`)
 ) CHARSET=utf8;
 
-INSERT INTO teampass_nested_tree VALUES("1","0","__FOLDERS__","1","2","1","0","0","0","0");
+-- INSERT INTO teampass_nested_tree VALUES("1","0","__FOLDERS__","1","2","1","0","0","0","0");
 
 CREATE TABLE IF NOT EXISTS `teampass_rights` (
 	`id` int(12) NOT null AUTO_INCREMENT,

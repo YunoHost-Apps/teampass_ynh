@@ -1,57 +1,110 @@
 #!/bin/bash
 
-# Récupère les infos de l'application.
-app=$YNH_APP_INSTANCE_NAME
+#=================================================
+# GENERIC STARTING
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
 
-# Source app helpers
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+source _common.sh
 source /usr/share/yunohost/helpers
 
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
 domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
+db_name=$(ynh_app_setting_get $app db_name)
 
-# The parameter $1 is the uncompressed restore directory location
-backup_dir=$1/apps/$app
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
 
-# Restore Nginx
-conf=/etc/nginx/conf.d/$domain.d/$app.conf
-if [ -f $conf ]; then
-    echo "There is already a nginx conf file at this path: $conf " >&2
-    ynh_die
-fi
-sudo cp -a $backup_dir/nginx.conf $conf
+sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
+	|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+	|| ynh_die "There is already a directory: $final_path "
 
-# Restore YunoHost parameters
-sudo cp -a $backup_dir/yunohost/. /etc/yunohost/apps/$app
+#=================================================
+# STANDARD RESTORE STEPS
+#=================================================
+# RESTORE OF THE NGINX CONFIGURATION
+#=================================================
 
-# Restore sources & data
-sudo cp -a "$backup_dir/sources/." $final_path
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-# Créer la base de donnée et la restaure
+#=================================================
+# RESTORE OF THE MAIN DIR OF THE APP
+#=================================================
+
+ynh_restore_file "$final_path"
+
+#=================================================
+# RESTORE OF THE SQL BDD
+#=================================================
+
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
-db_user=$app
-ynh_mysql_create_db $db_user $db_user $db_pwd
-mysql --debug-check -u $db_user -p$db_pwd $db_user < ${backup_dir}/db.sql
+ynh_mysql_setup_db $db_name $db_name $db_pwd
+ynh_mysql_connect_as $db_name $db_pwd $db_name < ./db.sql
 
-# Copy dedicated php-fpm process from backup folder to the right location
-sudo cp -a $backup_dir/php-fpm.conf /etc/php5/fpm/pool.d/$app.conf
-sudo cp -a $backup_dir/php-fpm.ini /etc/php5/fpm/conf.d/20-$app.ini
+#=================================================
+# RECREATE OF THE DEDICATED USER
+#=================================================
 
-# ADD_SYS_USER	# Créer un user système dédié pour l'application
-if ! ynh_system_user_exists "$app"	# Test l'existence de l'utilisateur
-then
-	sudo useradd -d /var/www/$app --system --user-group $app --shell /usr/sbin/nologin || (echo "Unable to create $app system account" >&2 && false)
-fi
+ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 
-# Copie du fichier sk.php
-sudo mkdir /etc/teampass
-sudo cp -a $backup_dir/sk.php /etc/teampass/sk.php
-sudo chown -R root:$app /etc/teampass/sk.php
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
 
 # Les fichiers appartiennent à root
-sudo chown -R root:$app $final_path
+sudo chown -R root: $final_path
+# Sauf les dossiers files et upload
+sudo chown -R $app: $final_path/files $final_path/upload
 
-# And Reload service
-sudo service php5-fpm reload
+#=================================================
+# RESTORE OF THE PHP-FPM CONFIGURATION
+#=================================================
 
-# Reload webserver
-sudo service nginx reload
+ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
+ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
+
+#=================================================
+# SPECIFIC RESTORE
+#=================================================
+# RESTORE THE SK.PHP FILE
+#=================================================
+
+ynh_restore_file "/etc/teampass/sk.php"
+sudo chown -R root:$app "/etc/teampass/sk.php"
+
+#=================================================
+# RESTORE CRON FILE
+#=================================================
+
+ynh_restore_file "/etc/cron.d/teampass"
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+
+sudo systemctl reload php5-fpm
+sudo systemctl reload nginx

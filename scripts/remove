@@ -1,34 +1,61 @@
 #!/bin/bash
 
-source .fonctions	# Charge les fonctions génériques habituellement utilisées dans le script
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Récupère les infos de l'application.
-app=$YNH_APP_INSTANCE_NAME
-
-# Source app helpers
+source _common.sh
 source /usr/share/yunohost/helpers
 
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
 domain=$(ynh_app_setting_get $app domain)
+db_name=$(ynh_app_setting_get $app db_name)
 
-REMOVE_BDD $app	# Suppression de la base de donnée et de l'utilisateur associé.
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# REMOVE THE SQL BDD
+#=================================================
 
-SECURE_REMOVE '/var/www/$app'	# Suppression du dossier de l'application
+ynh_mysql_remove_db $db_name $db_name	# Suppression de la base de donnée et de l'utilisateur associé.
 
-# Remove the sk.php
-if [ -e "/etc/teampass/" ]; then
-	echo "Delete sk.php"
-	sudo rm -r "/etc/teampass/"
-fi
+#=================================================
+# REMOVE THE MAIN DIR OF THE APP
+#=================================================
 
-REMOVE_NGINX_CONF	# Suppression de la configuration nginx
+ynh_secure_remove "/var/www/$app"	# Suppression du dossier de l'application
 
-SECURE_REMOVE '/var/log/$app/'	# Suppression des log
+#=================================================
+# REMOVE THE NGINX CONFIGURATION
+#=================================================
 
-REMOVE_FPM_CONF	# Suppression de la configuration du pool php-fpm
+ynh_remove_nginx_config	# Suppression de la configuration nginx
 
-REMOVE_SYS_USER	# Supprime l'user système dédié pour l'application
+#=================================================
+# REMOVE THE PHP-FPM CONFIGURATION
+#=================================================
 
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
+ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 
-echo -e "\e[0m"	# Restore normal color
+#=================================================
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE THE SK.PHP FILE
+#=================================================
+
+ynh_secure_remove "/etc/teampass"
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+
+ynh_system_user_delete $app
