@@ -3,15 +3,15 @@
 	"id": "teampass",
 	"packaging_format": 1,
 	"requirements": {
-		"yunohost": ">= 2.4"
+		"yunohost": ">= 2.6.4"
 	},
 	"description": {
 		"en": "Passwords Manager",
 		"fr": "Gestionnaire de mots de passes."
 	},
-	"version": "2.1.26-3",
+	"version": "2.1.26-final-3",
 	"url": "http://www.teampass.net",
-	"license": "free",
+	"license": "AGPL-3.0",
 	"maintainer": {
 		"name": "Ackak, Maniack Crudelis et matlink",
 		"email": "ackak_ynh@ackak.net maniackc_dev@crudelis.fr matlink@matlink.fr"
