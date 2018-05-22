@@ -20,20 +20,49 @@ path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 
 #=================================================
+# CHECK VERSION
+#=================================================
+
+ynh_abort_if_up_to_date
+
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+if [ -z $final_path ]; then	# Si final_path n'est pas renseigné dans app setting
+	final_path=/var/www/$app
+	ynh_app_setting_set $app final_path $final_path
+fi
+
+if [ -z $db_name ]; then	# Si db_name n'est pas renseigné dans app setting
+	db_name=$(ynh_sanitize_dbid $app)
+	ynh_app_setting_set $app db_name $db_name
+fi
+
+#=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 
-BACKUP_BEFORE_UPGRADE	# Backup the current version of the app
+# Backup the current version of the app
+ynh_backup_before_upgrade
 ynh_clean_setup () {
-	BACKUP_FAIL_UPGRADE	# restore it if the upgrade fails
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
 }
-ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # CHECK THE PATH
 #=================================================
 
 path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -43,10 +72,17 @@ path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du
 
 ynh_setup_source "$final_path"	# Télécharge la source, décompresse et copie dans $final_path
 
+# Delete the install directory.
+ynh_secure_remove "$final_path/install"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
+if [ "$path_url" != "/" ]
+then
+	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
+fi
 ynh_add_nginx_config
 
 #=================================================
@@ -64,14 +100,46 @@ ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le co
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# ...
+# UPDATE TP.CONFIG.PHP FILE
 #=================================================
+
+# The file tp.config.php is a dump of the admin part of the database.
+tp_config_file="$final_path/includes/config/tp.config.php"
+
+echo "<?php
+global \$SETTINGS;
+\$SETTINGS = array (" > $tp_config_file
+
+while read settings
+do
+	echo -n "    '$(echo $settings | awk '{ print $1 }')'" >> $tp_config_file
+	echo " => '$(echo $settings | cut -d' ' -f2-)'," >> $tp_config_file
+done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_misc" $app)"
+echo ");" >> $tp_config_file
 
 #=================================================
 # CREATE A CRON FILE FOR AUTOMATIC BACKUP
 #=================================================
 
-echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/teampass
+echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
+
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+# Move settings.php from old teampass version
+if [ ! -e "$final_path/includes/config/settings.php" ]
+then
+	mv "$final_path/includes/settings.php" "$final_path/includes/config/settings.php"
+fi
+
+# Create csrfp.config.php
+if [ ! -e "$final_path/includes/libraries/csrfp/libs/csrfp.config.php" ]
+then
+	cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+	ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+	ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+fi
 
 #=================================================
 # GENERIC FINALISATION
@@ -80,14 +148,20 @@ echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cro
 #=================================================
 
 # Les fichiers appartiennent à root
-sudo chown -R root: $final_path
-# Sauf les dossiers files et upload
-sudo chown -R $app: $final_path/files $final_path/upload
+chown -R root: $final_path
+# Sauf certains dossiers includes, files et upload
+chown -R $app $final_path/{includes,files,upload}
 # Restreint l'accès au dossier de backup
-sudo chmod 750 $final_path/backups
+chmod 750 $final_path/backups
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 
-sudo systemctl reload nginx
+ynh_system_reload nginx
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF

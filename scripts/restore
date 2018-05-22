@@ -1,25 +1,25 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
-#=================================================
-# MANAGE FAILURE OF THE SCRIPT
-#=================================================
-
-# Exit on command errors and treat unset variables as an error
-set -eu
-
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 if [ ! -e _common.sh ]; then
-	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	chmod a+rx _common.sh
 fi
 source _common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
@@ -36,10 +36,16 @@ db_name=$(ynh_app_setting_get $app db_name)
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
+ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
+
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
 
 #=================================================
 # STANDARD RESTORE STEPS
@@ -74,9 +80,9 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 #=================================================
 
 # Les fichiers appartiennent à root
-sudo chown -R root: $final_path
+chown -R root: $final_path
 # Sauf les dossiers files et upload
-sudo chown -R $app: $final_path/files $final_path/upload
+chown -R $app: $final_path/files $final_path/upload
 
 #=================================================
 # RESTORE OF THE PHP-FPM CONFIGURATION
@@ -91,14 +97,14 @@ ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
 # RESTORE THE SK.PHP FILE
 #=================================================
 
-ynh_restore_file "/etc/teampass/sk.php"
-sudo chown -R root:$app "/etc/teampass/sk.php"
+ynh_restore_file "/etc/$app/sk.php"
+chown -R root:$app "/etc/$app/sk.php"
 
 #=================================================
 # RESTORE CRON FILE
 #=================================================
 
-ynh_restore_file "/etc/cron.d/teampass"
+ynh_restore_file "/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALISATION
@@ -106,5 +112,19 @@ ynh_restore_file "/etc/cron.d/teampass"
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-sudo systemctl reload php5-fpm
-sudo systemctl reload nginx
+ynh_system_reload php5-fpm
+ynh_system_reload nginx
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+message="If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/teampass_ynh"
+
+ynh_send_readme_to_admin "$message" "root"
