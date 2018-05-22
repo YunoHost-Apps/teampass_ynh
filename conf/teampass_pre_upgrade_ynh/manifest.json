@@ -6,7 +6,7 @@
 		"en": "Passwords Manager",
 		"fr": "Gestionnaire de mots de passes."
 	},
-	"version": "2.1.27.15~ynh1",
+	"version": "2.1.26-final-3~ynh1",
 	"url": "http://www.teampass.net",
 	"license": "AGPL-3.0",
 	"maintainer": {
@@ -14,9 +14,9 @@
 		"email": "maniackc_dev@crudelis.fr"
 	},
 	"requirements": {
-		"yunohost": ">= 2.7.12"
+		"yunohost": ">= 2.7.2"
 	},
-	"multi_instance": true,
+	"multi_instance": false,
 	"services": [
 		"nginx",
 		"php5-fpm",
@@ -50,7 +50,8 @@
 					"en": "Choose a password for the admin",
 					"fr": "Choisissez un mot de passe pour l'administrateur"
 				},
-				"example": "Choose a password"
+				"example": "Choose a password",
+				"default": "admin"
 			}
 		]
 	}

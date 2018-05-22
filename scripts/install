@@ -13,11 +13,6 @@ source /usr/share/yunohost/helpers
 # MANAGE FAILURE OF THE SCRIPT
 #=================================================
 
-ynh_clean_setup () {
-# Nettoyage des résidus d'installation non pris en charge par le script remove.
-# Pas de nettoyage supplémentaire nécessaire ici...
-	echo ""
-}
 ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
 
 #=================================================
@@ -26,7 +21,7 @@ ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est dét
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
-password_admin=$YNH_APP_ARG_PASSWORD
+ynh_print_OFF; password_admin=$YNH_APP_ARG_PASSWORD; ynh_print_ON
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -34,9 +29,16 @@ app=$YNH_APP_INSTANCE_NAME
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
 
-path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
-CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
-CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
+
+# Normalize the url path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+# Check web path availability
+ynh_webpath_available $domain $path_url
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -44,6 +46,12 @@ CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilis
 
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
+
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -63,12 +71,16 @@ ynh_app_setting_set $app final_path $final_path
 ynh_setup_source "$final_path"	# Télécharge la source, décompresse et copie dans $final_path
 
 # Delete the install directory.
-# SECURE_REMOVE '$final_path/install'
+ynh_secure_remove "$final_path/install"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
+if [ "$path_url" != "/" ]
+then
+	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
+fi
 ynh_add_nginx_config
 
 #=================================================
@@ -89,94 +101,115 @@ ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le co
 # FILL THE DATABASE
 #=================================================
 
-# Copie du script contenant la fonction bCrypt
-sudo cp ../conf/mdphash.php $final_path
-
 # Remplacement des variables dans le fichier sql
 if [ $(echo $LANG | cut -c1-2) == "fr" ]
 then
-    langue=french
-	folders=partagés	# Le dossier partagé est actuellement désactivé par défaut. Encore un bug...
+	langue=french
+	folders="partagés"
 	roles=utilisateurs
 else
-    langue=english
+	langue=english
 	folders=shared
 	roles=users
 fi
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/populate.sql
-sed -i "s@__DOMAIN__@$domain@g" ../conf/populate.sql
-sed -i "s@__PATH__@$path_url@g" ../conf/populate.sql
-sed -i "s@__FOLDERS__@$folders@g" ../conf/populate.sql
-sed -i "s@__ROLES__@$roles@g" ../conf/populate.sql
-sed -i "s@__VERSION__@$(sed -n 3p $final_path/changelog.md)@g" ../conf/populate.sql
-sed -i "s@__TIMEZONE__@$(cat /etc/timezone)@g" ../conf/populate.sql
-sed -i "s@__BCRYPT_MDP__@$(php ../conf/mdphash.php $password_admin)@g" ../conf/populate.sql
-sed -i "s@__LANG__@$langue@g" ../conf/populate.sql
+ynh_replace_string "__APP__" "$app" ../conf/populate.sql
+ynh_replace_string "__FINALPATH__" "$final_path" ../conf/populate.sql
+ynh_replace_string "__DOMAIN__" "$domain" ../conf/populate.sql
+ynh_replace_string "__PATH__" "$path_url" ../conf/populate.sql
+ynh_replace_string "__FOLDERS__" "$folders" ../conf/populate.sql
+ynh_replace_string "__ROLES__" "$roles" ../conf/populate.sql
+ynh_replace_string "__VERSION__" "$(sed -n 3p $final_path/changelog.txt)" ../conf/populate.sql
+ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" ../conf/populate.sql
+ynh_replace_string "__BCRYPT_MDP__" "$(php $final_path/mdphash.php $password_admin)" ../conf/populate.sql
+ynh_replace_string "__LANG__" "$langue" ../conf/populate.sql
+ynh_replace_string "__TIME__" "$(date +%s)" ../conf/populate.sql
 
 # Enregistre les infos dans la config YunoHost
 ynh_app_setting_set $app langue $langue
 
 # Import du fichier SQL
-mysql -u $db_name -p$db_pwd $db_name < ../conf/populate.sql
+ynh_mysql_connect_as $db_name $db_pwd $db_name < ../conf/populate.sql
+
+#=================================================
+# CREATE TP.CONFIG.PHP FILE
+#=================================================
+
+# The file tp.config.php is a dump of the admin part of the database.
+tp_config_file="$final_path/includes/config/tp.config.php"
+
+echo "<?php
+global \$SETTINGS;
+\$SETTINGS = array (" > $tp_config_file
+
+while read settings
+do
+	echo -n "    '$(echo $settings | awk '{ print $1 }')'" >> $tp_config_file
+	echo " => '$(echo $settings | cut -d' ' -f2-)'," >> $tp_config_file
+done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_misc" $app)"
+echo ");" >> $tp_config_file
 
 #=================================================
 # CONFIGURE TEAMPASS
 #=================================================
 
 # Remplacement des variables dans les fichier settings.php et sk.php
-sed -i "s@__DBUSER__@$db_name@g" ../conf/settings.php
-sed -i "s@__DBPWD__@$db_pwd@g" ../conf/settings.php
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/settings.php
-path_sk_file=/etc/teampass/
-sudo mkdir $path_sk_file
-sed -i "s@__SKPATH__@$path_sk_file@g" ../conf/settings.php
+ynh_replace_string "__DBUSER__" "$db_name" ../conf/settings.php
+ynh_replace_string "__DBPWD__" "$db_pwd" ../conf/settings.php
+ynh_replace_string "__FINALPATH__" "$final_path" ../conf/settings.php
+path_sk_file=/etc/$app/
+mkdir $path_sk_file
+ynh_replace_string "__SKPATH__" "$path_sk_file" ../conf/settings.php
 
 #=================================================
 # CREATE A SALTKEY
 #=================================================
 
 saltkey=$(dd if=/dev/urandom bs=1 count=200 2> /dev/null | tr -c -d '[A-Za-z0-9]' | sed -n 's/\(.\{32\}\).*/\1/p')
-sed -i "s@__SALTKEY__@$saltkey@g" ../conf/sk.php
+ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
 
 #=================================================
 # COPY THE FILES
 #=================================================
 
-sudo cp ../conf/sk.php $path_sk_file/sk.php
-sudo chown -R root:$app $path_sk_file
-sudo chmod 750 $path_sk_file
-sudo cp ../conf/settings.php $final_path/includes/config/settings.php
+cp ../conf/sk.php $path_sk_file/sk.php
+chown -R root:$app $path_sk_file
+chmod 750 $path_sk_file
+cp ../conf/settings.php $final_path/includes/config/settings.php
 ynh_store_file_checksum "$final_path/includes/config/settings.php"	# Enregistre la somme de contrôle du fichier de config
-sudo cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-sed -i "s@CSRFP_TOKEN\" => \"@&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)@g" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-sed -i "s@jsUrl\" => \"@&$domain$path_url/includes/libraries/csrfp/js/csrfprotector.js@g" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 
 #=================================================
 # CREATE THE USERS
 #=================================================
 
+# Not used anymore, because the current version support ldap.
+# But still I keep that here, just in case...
+
 # Ajout des utilisateurs actuels dans la base yunohost
-teampass_users=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x objectClass=mailAccount uid | grep uid: | sed 's/uid: //' | xargs)
-id=1
-for teampassuser in $teampass_users
-do
-	real_password=$(ynh_string_random)	# Génère un mot de passe aléatoire
-    password=$(php ../conf/mdphash.php $real_password)
-	mail=$(sudo ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
+# teampass_users=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x objectClass=mailAccount uid | grep uid: | sed 's/uid: //' | xargs)
+# id=1
+# for teampassuser in $teampass_users
+# do
+# 	real_password=$(ynh_string_random)	# Génère un mot de passe aléatoire
+#     password=$(php $final_path/mdphash.php $real_password)
+# 	mail=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
 	# Creation de l'utilisateur
-    mysql -u $db_name -p$db_pwd $db_name -e "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');"
+#     ynh_mysql_execute_as_root "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');" $app
 	# Creation du repertoire personnel
-	id_user=$(mysql -u $db_name -p$db_pwd $db_name -se "SELECT id from teampass_users where login='$teampassuser';")
-    mysql -u $db_name -p$db_pwd $db_name -e "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);"
-
-    ((id++))
-done
+# 	id_user=$(ynh_mysql_execute_as_root "SELECT id from teampass_users where login='$teampassuser';" $app)
+#     ynh_mysql_execute_as_root "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);" $app
+#
+#     ((id++))
+# done
 
 #=================================================
-# CREATE A CRON FILE FOR AUTOMATIC BACKUP
+# CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
 #=================================================
 
-echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/teampass
+echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
+# Add also a clean of old backup.
 
 #=================================================
 # GENERIC FINALISATION
@@ -185,14 +218,30 @@ echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cro
 #=================================================
 
 # Les fichiers appartiennent à root
-sudo chown -R root: $final_path
-# Sauf les dossiers files et upload
-sudo chown -R $app: $final_path/files $final_path/upload
+chown -R root: $final_path
+# Sauf certains dossiers includes, files et upload
+chown -R $app $final_path/{includes,files,upload}
 # Restreint l'accès au dossier de backup
-sudo chmod 750 $final_path/backups
+chmod 750 $final_path/backups
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 
-sudo systemctl reload nginx
+ynh_system_reload nginx
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+message="If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/teampass_ynh
+
+!!! Be carreful when using this app, we have encountered many issues with the last upgrade. The next upgrade could be also difficult, and may need to reinstall the app and migrate manually."
+
+ynh_send_readme_to_admin "$message" "root"

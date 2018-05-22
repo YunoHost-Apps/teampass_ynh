@@ -1,25 +1,12 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
+# GENERIC STARTING
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	chmod a+rx _common.sh
-fi
-source _common.sh
 source /usr/share/yunohost/helpers
-
-#=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
@@ -27,49 +14,47 @@ ynh_abort_if_errors
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
 domain=$(ynh_app_setting_get $app domain)
 db_name=$(ynh_app_setting_get $app db_name)
 
 #=================================================
-# STANDARD BACKUP STEPS
+# STANDARD REMOVE
 #=================================================
-# BACKUP OF THE MAIN DIR OF THE APP
-#=================================================
-
-CHECK_SIZE "$final_path"
-ynh_backup "$final_path"
-
-#=================================================
-# BACKUP OF THE NGINX CONFIGURATION
+# REMOVE THE SQL BDD
 #=================================================
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_mysql_remove_db $db_name $db_name	# Suppression de la base de donnée et de l'utilisateur associé.
 
 #=================================================
-# BACKUP OF THE PHP-FPM CONFIGURATION
+# REMOVE THE MAIN DIR OF THE APP
 #=================================================
 
-ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
-ynh_backup "/etc/php5/fpm/conf.d/20-$app.ini"
+ynh_secure_remove "/var/www/$app"	# Suppression du dossier de l'application
 
 #=================================================
-# BACKUP OF THE SQL BDD
+# REMOVE THE NGINX CONFIGURATION
 #=================================================
 
-ynh_mysql_dump_db "$db_name" > db.sql
-CHECK_SIZE "db.sql"
+ynh_remove_nginx_config	# Suppression de la configuration nginx
 
 #=================================================
-# SPECIFIC BACKUP
-#=================================================
-# BACKUP SK.PHP
+# REMOVE THE PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_backup "/etc/$app/sk.php"
+ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 
 #=================================================
-# BACKUP CRON FILE
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE THE SK.PHP FILE
 #=================================================
 
-ynh_backup "/etc/cron.d/$app"
+ynh_secure_remove "/etc/teampass"
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+
+ynh_system_user_delete $app

@@ -1,33 +1,72 @@
-Teampass for YunoHost
-==================
+# Teampass for YunoHost
 
-**Ce package n'est pas pleinement fonctionnel. Lisez bien ce qui suit avant de l'installer...**
+[![Integration level](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass)  
+[![Install Teampass with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=teampass)
 
-[Yunohost project](https://yunohost.org/#/)
+*[Lire ce readme en français.](./README_fr.md)*
 
-Gestionnaire de mot de passe collaboratif.
+> *This package allow you to install teampass quickly and simply on a YunoHost server.  
+If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
-http://www.teampass.net
+## Overview
 
-Teampass peut être configuré uniquement via le compte administrateur. Pour cela il faut s'identifier avec admin et le mot de passe choisi à l'installation.
+TeamPass is a Passwords Manager dedicated for managing passwords in a collaborative way by sharing them among team members.  
+Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
-Pour utiliser la fonction de sauvegarde automatique, il est nécessaire de mettre en place un cron contenant ceci dans /etc/cron.d/teampass:
-```0 0 * * * www-data cd /var/www/teampass/backups && php script.backup.php```
+**Shipped version:** 2.1.27.15
 
-**Mise à jour du package:**
-sudo yunohost app upgrade teampass -u https://github.com/YunoHost-Apps/teampass_ynh
+## Screenshots
 
-**Multi-utilisateur:** Oui, avec support ldap.
+![](https://teampass.net/images/portfolio/pf_tp_1.png)
 
-**Voir l'état du package:**  
-~*[Dernier rapport hebdomadaire](https://forum.yunohost.org/t/rapport-hebdomadaire-dintegration-continue/2297)*~  
-~*[Dernier test d'intégration continue](https://ci-apps.yunohost.org/jenkins/job/teampass%20%28Community%29/lastBuild/consoleFull)*~
+## Demo
+
+No demo available.
+
+## Configuration
+
+Use the admin panel of your teampass to configure this app.  
+To find the admin panel, use the login 'admin' and the password choose during the installation.
+
+## Documentation
+
+ * Official documentation: https://teampass.readthedocs.io/en/latest/
+ * YunoHost documentation: There no other documentations, feel free to contribute.
+
+## YunoHost specific features
+
+#### Multi-users support
+
+Supported, with LDAP.
+
+#### Supported architectures
+
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/teampass%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/teampass%20(Community)/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/teampass%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/teampass%20(Community)%20(%7EARM%7E)/)
+
+## Limitations
+
+* **The upgrade script doesn't work from the version 2.1.26-3. A manual migration have to be done. For now we can't be sure that the upgrade script is going to work for the following upgrades.  
+Be aware that the upgrade could be not smoothly.**
+
+## Additionnal informations
+
+## Links
+
+ * Report a bug: https://github.com/YunoHost-Apps/teampass_ynh/issues
+ * Teampass website: https://teampass.net/
+ * YunoHost website: https://yunohost.org/
 
 ---
 
-> *Depuis la mise à jour 2.1.26-3, le support ldap est cassé. Mais des corrections de bug justifient un changement de version.*  
-*Les utilisateurs sont dans la base de données de teampass, mais le mot est généré aléatoirement et devra être réinitialisé pour chaque utilisateur souhaitant utiliser l'application*  
-*Pour la première connexion, utiliser l'accès admin, avec le login 'admin' et le mot de passe renseigné à l'installation.*
+Developers infos
+----------------
 
-> *les mails ne fonctionne pas non plus, donc impossible d'utiliser la fonction 'Mot de passe oublié'.*  
-*Je pense que Teampass n'est toujours pas prêt... Le sera-t-il un jour ...?*
+Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing).
+
+To try the testing branch, please proceed like that.
+```
+sudo yunohost app install https://github.com/YunoHost-Apps/teampass_ynh/tree/testing --verbose
+or
+sudo yunohost app upgrade teampass -u https://github.com/YunoHost-Apps/teampass_ynh/tree/testing --verbose
+```

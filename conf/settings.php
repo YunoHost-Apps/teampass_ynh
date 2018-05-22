@@ -1,5 +1,5 @@
 <?php
-global $lang, $txt, $k, $pathTeampas, $urlTeampass, $pwComplexity, $mngPages;
+global $lang, $txt, $pathTeampas, $urlTeampass, $pwComplexity, $mngPages;
 global $server, $user, $pass, $database, $pre, $db, $port, $encoding;
 
 ### DATABASE connexion parameters ###
