@@ -48,12 +48,6 @@ ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # CREATE A SQL BDD
@@ -77,10 +71,6 @@ ynh_secure_remove "$final_path/install"
 # NGINX CONFIGURATION
 #=================================================
 
-if [ "$path_url" != "/" ]
-then
-	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
-fi
 ynh_add_nginx_config
 
 #=================================================
@@ -228,13 +218,7 @@ chmod 750 $final_path/backups
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload nginx
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_OFF
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN
@@ -244,4 +228,4 @@ message="If you facing an issue or want to improve this app, please open a new i
 
 !!! Be carreful when using this app, we have encountered many issues with the last upgrade. The next upgrade could be also difficult, and may need to reinstall the app and migrate manually."
 
-ynh_send_readme_to_admin "$message" "root"
+ynh_send_readme_to_admin --app_message="$message" --recipients="root"
