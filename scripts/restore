@@ -6,12 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	chmod a+rx _common.sh
-fi
-source _common.sh
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -81,8 +76,8 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 
 # Les fichiers appartiennent à root
 chown -R root: $final_path
-# Sauf les dossiers files et upload
-chown -R $app: $final_path/files $final_path/upload
+# Sauf les dossiers includes, files et upload
+chown -R $app $final_path/{includes,files,upload}
 
 #=================================================
 # RESTORE OF THE PHP-FPM CONFIGURATION
@@ -98,7 +93,7 @@ ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
 #=================================================
 
 ynh_restore_file "/etc/$app/sk.php"
-chown -R root:$app "/etc/$app/sk.php"
+chown -R $app "/etc/$app/sk.php"
 
 #=================================================
 # RESTORE CRON FILE
@@ -112,8 +107,8 @@ ynh_restore_file "/etc/cron.d/$app"
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-ynh_system_reload php5-fpm
-ynh_system_reload nginx
+ynh_system_reload --service_name=php5-fpm
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
@@ -127,4 +122,4 @@ ynh_maintenance_mode_OFF
 
 message="If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/teampass_ynh"
 
-ynh_send_readme_to_admin "$message" "root"
+ynh_send_readme_to_admin --app_message="$message" --recipients="root"
