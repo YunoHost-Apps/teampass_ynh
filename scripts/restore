@@ -76,8 +76,8 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 
 # Les fichiers appartiennent à root
 chown -R root: $final_path
-# Sauf les dossiers files et upload
-chown -R $app: $final_path/files $final_path/upload
+# Sauf les dossiers includes, files et upload
+chown -R $app $final_path/{includes,files,upload}
 
 #=================================================
 # RESTORE OF THE PHP-FPM CONFIGURATION
@@ -93,7 +93,7 @@ ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
 #=================================================
 
 ynh_restore_file "/etc/$app/sk.php"
-chown -R root:$app "/etc/$app/sk.php"
+chown -R $app "/etc/$app/sk.php"
 
 #=================================================
 # RESTORE CRON FILE
