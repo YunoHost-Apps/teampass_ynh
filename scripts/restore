@@ -84,7 +84,7 @@ chown -R $app $final_path/{includes,files,upload}
 # RESTORE OF THE PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_restore_file "/etc/php/$phpversion/fpm/pool.d/$app.conf"
+ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 #ynh_restore_file "/etc/php$phpversion/fpm/conf.d/20-$app.ini"
 
 #=================================================
@@ -93,7 +93,8 @@ ynh_restore_file "/etc/php/$phpversion/fpm/pool.d/$app.conf"
 # RESTORE THE SK.PHP FILE
 #=================================================
 
-ynh_restore_file "/etc/$app/sk.php"
+ynh_restore_file --origin_path="/etc/$app/sk.php"
+
 chown -R $app "/etc/$app/sk.php"
 
 #=================================================
