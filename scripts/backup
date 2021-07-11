@@ -32,7 +32,6 @@ db_name=$(ynh_app_setting_get $app db_name)
 # BACKUP OF THE MAIN DIR OF THE APP
 #=================================================
 
-CHECK_SIZE "$final_path"
 ynh_backup "$final_path"
 
 #=================================================
@@ -53,7 +52,6 @@ ynh_backup "/etc/php5/fpm/conf.d/20-$app.ini"
 #=================================================
 
 ynh_mysql_dump_db "$db_name" > db.sql
-CHECK_SIZE "db.sql"
 
 #=================================================
 # SPECIFIC BACKUP

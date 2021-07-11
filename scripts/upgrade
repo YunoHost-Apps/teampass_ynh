@@ -159,9 +159,9 @@ fi
 #=================================================
 
 # Remplacement des variables dans le fichier settings.php
-ynh_replace_string "__DBUSER__" "$db_name" ../conf/settings.php
+ynh_replace_string "__DB_USER__" "$db_name" ../conf/settings.php
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
-ynh_replace_string "__DBPWD__" "$db_pwd" ../conf/settings.php
+ynh_replace_string "__DB_PWD__" "$db_pwd" ../conf/settings.php
 ynh_replace_string "__FINALPATH__" "$final_path" ../conf/settings.php
 path_sk_file=/etc/$app/
 ynh_replace_string "__SKPATH__" "$path_sk_file" ../conf/settings.php
