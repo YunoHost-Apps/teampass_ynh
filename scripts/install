@@ -57,6 +57,14 @@ ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_mysql_setup_db --db_user=$db_name --db_name=$db_name
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..." --weight=2
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir="$final_path"
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..." --weight=7
@@ -77,14 +85,6 @@ ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 ynh_add_nginx_config
 
 #=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..." --weight=2
-
-# Create a system user
-ynh_system_user_create --username=$app
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
@@ -98,6 +98,11 @@ phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 # FILL THE DATABASE
 #=================================================
 
+version="$(sed -n 3p $final_path/changelog.txt)"
+bcrypt_mdp="$(php $final_path/mdphash.php $password_admin)"
+timezone="$(cat /etc/timezone)"
+time="$(date +%s)"
+
 # Remplacement des variables dans le fichier sql
 if [ $(echo $LANG | cut -c1-2) == "fr" ]
 then
@@ -109,23 +114,15 @@ else
 	folders=shared
 	roles=users
 fi
-ynh_replace_string "__APP__" "$app" ../conf/populate.sql
-ynh_replace_string "__FINALPATH__" "$final_path" ../conf/populate.sql
-ynh_replace_string "__DOMAIN__" "$domain" ../conf/populate.sql
-ynh_replace_string "__PATH__" "$path_url" ../conf/populate.sql
-ynh_replace_string "__FOLDERS__" "$folders" ../conf/populate.sql
-ynh_replace_string "__ROLES__" "$roles" ../conf/populate.sql
-ynh_replace_string "__VERSION__" "$(sed -n 3p $final_path/changelog.txt)" ../conf/populate.sql
-ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" ../conf/populate.sql
-ynh_replace_string "__BCRYPT_MDP__" "$(php $final_path/mdphash.php $password_admin)" ../conf/populate.sql
-ynh_replace_string "__LANG__" "$langue" ../conf/populate.sql
-ynh_replace_string "__TIME__" "$(date +%s)" ../conf/populate.sql
+
+ynh_add_config --template="../conf/populate.sql" --destination="$final_path/populate.sql"
 
 # Enregistre les infos dans la config YunoHost
-ynh_app_setting_set $app langue $langue
+ynh_app_setting_set --app=$app --key=langue --value=$langue
 
 # Import du fichier SQL
-ynh_mysql_connect_as $db_name $db_pwd $db_name < ../conf/populate.sql
+ynh_mysql_connect_as $db_name $db_pwd $db_name < $final_path/populate.sql
+ynh_secure_remove --file="$final_path/populate.sql"
 
 #=================================================
 # CREATE TP.CONFIG.PHP FILE
@@ -149,13 +146,10 @@ echo ");" >> $tp_config_file
 # CONFIGURE TEAMPASS
 #=================================================
 
-# Remplacement des variables dans les fichier settings.php et sk.php
-ynh_replace_string "__DB_USER__" "$db_name" ../conf/settings.php
-ynh_replace_string "__DB_PWD__" "$db_pwd" ../conf/settings.php
-ynh_replace_string "__FINALPATH__" "$final_path" ../conf/settings.php
 path_sk_file=/etc/$app/
 mkdir $path_sk_file
-ynh_replace_string "__SKPATH__" "$path_sk_file" ../conf/settings.php
+
+ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
 
 #=================================================
 # CREATE A SALTKEY
@@ -163,16 +157,15 @@ ynh_replace_string "__SKPATH__" "$path_sk_file" ../conf/settings.php
 
 saltkey=$(ynh_string_random --length=32)
 ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
+ynh_add_config --template="../conf/sk.php" --destination="$path_sk_file/sk.php"
 
 #=================================================
 # COPY THE FILES
 #=================================================
 
-cp ../conf/sk.php $path_sk_file/sk.php
 chown -R $app $path_sk_file
 chmod 750 $path_sk_file
-cp ../conf/settings.php $final_path/includes/config/settings.php
-ynh_store_file_checksum "$final_path/includes/config/settings.php"	# Enregistre la somme de contrôle du fichier de config
+
 cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
 ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
 ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
