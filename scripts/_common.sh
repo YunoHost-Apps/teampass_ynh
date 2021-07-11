@@ -7,28 +7,6 @@ YNH_PHP_VERSION="7.3"
 # EXPERIMENTAL HELPERS
 #=================================================
 
-# Move a directory in yunohost.multimedia, and replace by a symbolic link
-#
-# usage: ynh_multimedia_movefolder "Source directory" "Destination directory"
-#
-# | arg: -s, --source_dir= - Source directory - The real directory which contains your medias.
-# It will be moved to "Destination directory"
-# A symbolic link will replace it.
-# | arg: -d, --dest_dir= - Destination directory - The new name and place of the directory, relative to "/home/yunohost.multimedia"
-ynh_multimedia_movefolder () {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [s]=source_dir= [d]=dest_dir= )
-	local source_dir
-	local dest_dir
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-
-	./yunohost.multimedia-master/script/ynh_media_addfolder.sh --inv --source="$source_dir" --dest="$dest_dir"
-}
-
-
-#=================================================
-
 # Send an email to inform the administrator
 #
 # usage: ynh_send_readme_to_admin app_message [recipients]
