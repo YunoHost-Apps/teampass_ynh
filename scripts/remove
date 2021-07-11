@@ -15,34 +15,43 @@ source /usr/share/yunohost/helpers
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-db_name=$(ynh_app_setting_get $app db_name)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
 #=================================================
 # STANDARD REMOVE
 #=================================================
 # REMOVE THE SQL BDD
 #=================================================
+ynh_script_progression --message="Removing the MySQL database..." --weight=1
 
-ynh_mysql_remove_db $db_name $db_name	# Suppression de la base de donnée et de l'utilisateur associé.
+# Remove a database if it exists, along with the associated user
+ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
 # REMOVE THE MAIN DIR OF THE APP
 #=================================================
+ynh_script_progression --message="Removing app main directory..." --weight=1
 
-ynh_secure_remove "/var/www/$app"	# Suppression du dossier de l'application
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
 
 #=================================================
 # REMOVE THE NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
 
-ynh_remove_nginx_config	# Suppression de la configuration nginx
+# Remove the dedicated NGINX config
+ynh_remove_nginx_config
 
 #=================================================
 # REMOVE THE PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Removing PHP-FPM configuration..." --weight=1
 
-ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
+# Remove the dedicated PHP-FPM config
+ynh_remove_fpm_config
 
 #=================================================
 # SPECIFIC REMOVE
@@ -50,12 +59,22 @@ ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 # REMOVE THE SK.PHP FILE
 #=================================================
 
-ynh_secure_remove "/etc/$app"
+# Remove a directory securely
+ynh_secure_remove --file="/etc/$app"
 
 #=================================================
-# GENERIC FINALISATION
+# GENERIC FINALIZATION
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
+ynh_script_progression --message="Removing the dedicated system user..." --weight=1
 
-ynh_system_user_delete $app
+# Delete a system user
+ynh_system_user_delete --username=$app
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Removal of $app completed" --last
+
