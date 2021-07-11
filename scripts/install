@@ -161,7 +161,7 @@ ynh_replace_string "__SKPATH__" "$path_sk_file" ../conf/settings.php
 # CREATE A SALTKEY
 #=================================================
 
-saltkey=$(dd if=/dev/urandom bs=1 count=200 2> /dev/null | tr -c -d '[A-Za-z0-9]' | sed -n 's/\(.\{32\}\).*/\1/p')
+saltkey=$(ynh_string_random --length=32)
 ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
 
 #=================================================
