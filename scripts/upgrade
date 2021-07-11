@@ -53,12 +53,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
-
-#=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
 
