@@ -152,7 +152,7 @@ then
 	# Upgrade to 2.1.25.2
 	#ynh_mysql_execute_as_root "INSERT INTO teampass_misc (id, type, intitule, valeur) VALUES (NULL, 'admin', 'encryption_protocol', 'ctr');" $app >&2
 	# Upgrade to 2.1.27.x
-	ynh_mysql_execute_as_root "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
+	#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
 fi
 
 #=================================================
