@@ -22,47 +22,56 @@ ynh_abort_if_errors
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
-domain=$(ynh_app_setting_get $app domain)
-db_name=$(ynh_app_setting_get $app db_name)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 #=================================================
-# STANDARD BACKUP STEPS
+# DECLARE DATA AND CONF FILES TO BACKUP
+#=================================================
+ynh_print_info --message="Declaring files to be backed up..."
+
 #=================================================
 # BACKUP OF THE MAIN DIR OF THE APP
 #=================================================
 
-ynh_backup "$final_path"
+ynh_backup --src_path="$final_path"
 
 #=================================================
 # BACKUP OF THE NGINX CONFIGURATION
 #=================================================
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP OF THE PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_backup "/etc/php$phpversion/fpm/pool.d/$app.conf"
-ynh_backup "/etc/php$phpversion/fpm/conf.d/20-$app.ini"
+ynh_backup --src_path="/etc/php$phpversion/fpm/pool.d/$app.conf"
+#ynh_backup --src_path="/etc/php$phpversion/fpm/conf.d/20-$app.ini"
 
-#=================================================
-# BACKUP OF THE SQL BDD
-#=================================================
-
-ynh_mysql_dump_db "$db_name" > db.sql
-
-#=================================================
-# SPECIFIC BACKUP
 #=================================================
 # BACKUP SK.PHP
 #=================================================
 
-ynh_backup "/etc/$app/sk.php"
+ynh_backup --src_path="/etc/$app/sk.php"
 
 #=================================================
 # BACKUP CRON FILE
 #=================================================
 
-ynh_backup "/etc/cron.d/$app"
+ynh_backup --src_path="/etc/cron.d/$app"
+
+#=================================================
+# BACKUP OF THE SQL BDD
+#=================================================
+ynh_print_info --message="Backing up the MySQL database..."
+
+ynh_mysql_dump_db --database="$db_name" > db.sql
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
+

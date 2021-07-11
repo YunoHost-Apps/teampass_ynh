@@ -8,6 +8,12 @@
 	},
 	"version": "2.1.27.15~ynh2",
 	"url": "http://www.teampass.net",
+	"upstream": {
+        "license": "AGPL-3.0",
+        "website": "http://www.teampass.net",
+        "admindoc": "https://teampass.readthedocs.io/en/latest/",
+        "code": "https://github.com/nilsteampassnet/TeamPass"
+    },
 	"license": "AGPL-3.0",
 	"maintainer": {
 		"name": "",
