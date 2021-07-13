@@ -8,18 +8,28 @@
 	},
 	"version": "2.1.27.15~ynh2",
 	"url": "http://www.teampass.net",
+	"upstream": {
+        "license": "AGPL-3.0",
+        "website": "http://www.teampass.net",
+        "admindoc": "https://teampass.readthedocs.io/en/latest/",
+        "code": "https://github.com/nilsteampassnet/TeamPass"
+    },
 	"license": "AGPL-3.0",
 	"maintainer": {
+		"name": "",
+		"email": ""
+	},
+	"previous_maintainers": [{
 		"name": "Maniack Crudelis",
 		"email": "maniackc_dev@crudelis.fr"
-	},
+	}],
 	"requirements": {
-		"yunohost": ">= 2.7.14"
+		"yunohost": ">= 4.2.4"
 	},
 	"multi_instance": true,
 	"services": [
 		"nginx",
-		"php5-fpm",
+		"php7.3-fpm",
 		"mysql"
 	],
 	"arguments": {
@@ -27,29 +37,17 @@
 			{
 				"name": "domain",
 				"type": "domain",
-				"ask": {
-					"en": "Choose a domain for Teampass",
-					"fr": "Choisissez un domaine pour Teampass"
-				},
 				"example": "domain.org"
 			},
 			{
 				"name": "path",
 				"type": "path",
-				"ask": {
-					"en": "Choose a path for Teampass",
-					"fr": "Choisissez un chemin pour Teampass"
-				},
 				"example": "/teampass",
 				"default": "/teampass"
 			},
 			{
 				"name": "password",
 				"type": "password",
-				"ask": {
-					"en": "Choose a password for the admin",
-					"fr": "Choisissez un mot de passe pour l'administrateur"
-				},
 				"example": "Choose a password"
 			}
 		]
