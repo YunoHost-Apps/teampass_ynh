@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Passwords Manager
 
-**Shipped version:** 2.1.27.15~ynh2
+**Shipped version:** 3.0.0.8~ynh1
 
 
 

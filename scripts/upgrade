@@ -82,6 +82,10 @@ then
 # 	ynh_secure_remove "$final_path/install"
 fi
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -170,11 +174,11 @@ ynh_add_config --template="../conf/settings.php" --destination="$final_path/incl
 #=================================================
 
 # Les fichiers appartiennent à root
-chown -R root: $final_path
+#chown -R root: $final_path
 # Sauf certains dossiers includes, install, files et upload
-chown -R $app $final_path/{includes,install,files,upload}
+#chown -R $app $final_path/{includes,install,files,upload}
 # Restreint l'accès au dossier de backup
-chmod 750 $final_path/backups
+#chmod 750 $final_path/backups
 
 #=================================================
 # RELOAD NGINX

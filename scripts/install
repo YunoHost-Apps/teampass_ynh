@@ -21,7 +21,7 @@ ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est dét
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
-ynh_print_OFF; password_admin=$YNH_APP_ARG_PASSWORD; ynh_print_ON
+password_admin=$YNH_APP_ARG_PASSWORD
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -157,7 +157,6 @@ ynh_add_config --template="../conf/settings.php" --destination="$final_path/incl
 #=================================================
 
 saltkey=$(ynh_string_random --length=32)
-ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
 ynh_add_config --template="../conf/sk.php" --destination="$path_sk_file/sk.php"
 
 #=================================================
@@ -211,9 +210,9 @@ echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cro
 # Les fichiers appartiennent à root
 chown -R root: $final_path
 # Sauf certains dossiers includes, files et upload
-chown -R $app $final_path/{includes,files,upload}
+chown -R $app $final_path/includes #{includes,files,upload}
 # Restreint l'accès au dossier de backup
-chmod 750 $final_path/backups
+chmod 750 $final_path #/backups
 
 #=================================================
 # RELOAD NGINX
@@ -237,4 +236,3 @@ ynh_send_readme_to_admin --app_message="$message" --recipients="root"
 #=================================================
 
 ynh_script_progression --message="Installation of $app completed" --last
-

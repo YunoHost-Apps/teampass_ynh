@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Gestionnaire de mots de passes.
 
-**Version incluse :** 2.1.27.15~ynh2
+**Version incluse :** 3.0.0.8~ynh1
 
 
 
