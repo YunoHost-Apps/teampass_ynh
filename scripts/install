@@ -77,6 +77,10 @@ ynh_setup_source --dest_dir="$final_path"
 # Delete the install directory.
 ynh_secure_remove "$final_path/install"
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -171,30 +175,6 @@ ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d '
 ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 
 #=================================================
-# CREATE THE USERS
-#=================================================
-
-# Not used anymore, because the current version support ldap.
-# But still I keep that here, just in case...
-
-# Ajout des utilisateurs actuels dans la base yunohost
-# teampass_users=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x objectClass=mailAccount uid | grep uid: | sed 's/uid: //' | xargs)
-# id=1
-# for teampassuser in $teampass_users
-# do
-# 	real_password=$(ynh_string_random)	# Génère un mot de passe aléatoire
-#     password=$(php $final_path/mdphash.php $real_password)
-# 	mail=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
-	# Creation de l'utilisateur
-#     ynh_mysql_execute_as_root "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');" $app
-	# Creation du repertoire personnel
-# 	id_user=$(ynh_mysql_execute_as_root "SELECT id from teampass_users where login='$teampassuser';" $app)
-#     ynh_mysql_execute_as_root "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);" $app
-#
-#     ((id++))
-# done
-
-#=================================================
 # CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
 #=================================================
 
@@ -203,24 +183,6 @@ echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cro
 
 #=================================================
 # GENERIC FINALISATION
-#=================================================
-# SECURING FILES AND DIRECTORIES
-#=================================================
-
-# Les fichiers appartiennent à root
-chown -R root: $final_path
-# Sauf certains dossiers includes, files et upload
-chown -R $app $final_path/includes #{includes,files,upload}
-# Restreint l'accès au dossier de backup
-chmod 750 $final_path #/backups
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-ynh_systemd_action --service_name=nginx --action=reload
-
 #=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
