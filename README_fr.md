@@ -11,7 +11,9 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Gestionnaire de mots de passes.
+TeamPass is a Passwords Manager dedicated for managing passwords in a collaborative way by sharing them among team members.
+Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
+
 
 **Version incluse :** 2.1.27.15~ynh2
 
