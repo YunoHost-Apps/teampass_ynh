@@ -74,7 +74,10 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 # Les fichiers appartiennent à root
-chown -R root: $final_path
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 # Sauf les dossiers includes, files et upload
 chown -R $app $final_path/{includes,files,upload}
 

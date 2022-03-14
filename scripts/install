@@ -215,7 +215,10 @@ echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cro
 #=================================================
 
 # Les fichiers appartiennent à root
-chown -R root: $final_path
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 # Sauf certains dossiers includes, files et upload
 chown -R $app $final_path/{includes,files,upload}
 # Restreint l'accès au dossier de backup
