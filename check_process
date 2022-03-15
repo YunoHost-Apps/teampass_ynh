@@ -2,7 +2,7 @@
 	; Manifest
 		domain="domain.tld"
 		path="/path"
-		password="pass"
+		password="1Strong-Password"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
@@ -11,16 +11,12 @@
 		setup_private=0
 		setup_public=0
 		upgrade=1
-#		upgrade=1	from_commit=
+		# 2.1.27.15~ynh2
+		upgrade=1	from_commit=46eea6cdc73937d99862fd4b5a0d991e2c4a5af2
 		backup_restore=1
 		multi_instance=1
-		incorrect_path=1
 		port_already_use=0
 		change_url=1
 ;;; Options
 Email=
 Notification=down
-;;; Upgrade options
-	; commit=
-		name=
-		manifest_arg=domain=DOMAIN&path=PATH&password=pass&
