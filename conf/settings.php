@@ -4,7 +4,7 @@ global $server, $user, $pass, $database, $pre, $db, $port, $encoding;
 
 ### DATABASE connexion parameters ###
 $server = "localhost";
-$user = "__DB_NAME__";
+$user = "__DB_USER__";
 $pass = "__DB_PWD__";
 $database = "__DB_NAME__";
 $pre = "teampass_";
