@@ -109,7 +109,7 @@ ynh_add_nginx_config
 ynh_script_progression --message="Filling the database..."
 
 version="$(sed -n 3p $final_path/changelog.txt)"
-bcrypt_mdp="$(php $final_path/mdphash.php $password_admin)"
+bcrypt_mdp="$(php $final_path/mdphash.php $password)"
 timezone="$(cat /etc/timezone)"
 time="$(date +%s)"
 
