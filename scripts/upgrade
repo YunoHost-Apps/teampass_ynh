@@ -46,16 +46,11 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
 
 if [ -z "$final_path" ]; then	# Si final_path n'est pas renseigné dans app setting
 	final_path=/var/www/$app
@@ -102,14 +97,6 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
@@ -118,10 +105,19 @@ ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
 ynh_add_fpm_config
 
 #=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
 # SPECIFIC UPGRADE
 #=================================================
 # UPDATE TP.CONFIG.PHP FILE
 #=================================================
+ynh_script_progression --message="Updating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
 tp_config_file="$final_path/includes/config/tp.config.php"
@@ -140,12 +136,14 @@ echo ");" >> $tp_config_file
 #=================================================
 # CREATE A CRON FILE FOR AUTOMATIC BACKUP
 #=================================================
+ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
 echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
 
 #=================================================
-# ENSURE DOWNWARD COMPATIBILITY
+# UPDATE A CONFIG FILE
 #=================================================
+ynh_script_progression --message="Updating a configuration file..."
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
@@ -204,12 +202,6 @@ chmod 750 $final_path/backups
 ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_OFF
 
 #=================================================
 # END OF SCRIPT
