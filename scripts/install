@@ -158,9 +158,6 @@ echo ");" >> $tp_config_file
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
 
-path_sk_file=/etc/$app/
-mkdir $path_sk_file
-
 ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
 
 #=================================================
@@ -169,15 +166,15 @@ ynh_add_config --template="../conf/settings.php" --destination="$final_path/incl
 ynh_script_progression --message="Creating a saltkey..."
 
 saltkey=$(ynh_string_random --length=32)
-ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
-ynh_add_config --template="../conf/sk.php" --destination="$path_sk_file/sk.php"
+mkdir /etc/$app/
+ynh_add_config --template="../conf/sk.php" --destination="/etc/$app/sk.php"
+chown -R $app /etc/$app/
+chmod 750 /etc/$app/
 
 #=================================================
-# COPY THE FILES
+# CREATE CSRFP
 #=================================================
-
-chown -R $app $path_sk_file
-chmod 750 $path_sk_file
+ynh_script_progression --message="Creating a csrfp..."
 
 cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
 ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
@@ -213,7 +210,6 @@ ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.j
 ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
 echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
-# Add also a clean of old backup.
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
