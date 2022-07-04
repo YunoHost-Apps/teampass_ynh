@@ -87,9 +87,8 @@ then
 
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source --dest_dir="$final_path"
-	# Delete the install directory.
-	# Keep it for the manual upgrade process...
-# 	ynh_secure_remove "$final_path/install"
+	# Do not delete the install directory. Keep it for the manual upgrade process...
+	# ynh_secure_remove "$final_path/install"
 fi
 
 chmod 750 "$final_path"
@@ -103,6 +102,7 @@ ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # NGINX CONFIGURATION
@@ -134,16 +134,11 @@ done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_mis
 echo ");" >> $tp_config_file
 
 #=================================================
-# CREATE A CRON FILE FOR AUTOMATIC BACKUP
-#=================================================
-ynh_script_progression --message="Creating a cron file for an automatic backup..."
-
-echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
-
-#=================================================
 # UPDATE A CONFIG FILE
 #=================================================
 ynh_script_progression --message="Updating a configuration file..."
+
+ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
@@ -173,12 +168,11 @@ then
 fi
 
 #=================================================
-# UPDATE SETTINGS.PHP
+# CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
 #=================================================
+ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
-path_sk_file="/etc/$app/"
-
-ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
+echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
 
 #=================================================
 # SECURING FILES AND DIRECTORIES

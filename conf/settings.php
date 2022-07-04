@@ -12,7 +12,7 @@ $port = 3306;
 $encoding = "utf8";
 
 @date_default_timezone_set($_SESSION['settings']['timezone']);
-@define('SECUREPATH', '__PATH_SK_FILE__');
-if (file_exists("__PATH_SK_FILE__sk.php")) {
-    require_once "__PATH_SK_FILE__sk.php";
+@define('SECUREPATH', '/etc/__APP__/');
+if (file_exists("/etc/__APP__/sk.php")) {
+    require_once "/etc/__APP__/sk.php";
 }
