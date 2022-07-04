@@ -47,14 +47,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-path_url=$old_path
-domain=$old_domain
-ynh_maintenance_mode_ON
-
-#=================================================
 # CHECK WHICH PARTS SHOULD BE CHANGED
 #=================================================
 
@@ -127,14 +119,6 @@ ynh_replace_string "https://$old_domain$old_path" "https://$new_domain$new_path"
 ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-path_url=$old_path
-domain=$old_domain
-ynh_maintenance_mode_OFF
 
 #=================================================
 # END OF SCRIPT
