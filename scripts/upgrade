@@ -46,16 +46,11 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
 
 if [ -z "$final_path" ]; then	# Si final_path n'est pas renseigné dans app setting
 	final_path=/var/www/$app
@@ -92,14 +87,22 @@ then
 
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source --dest_dir="$final_path"
-	# Delete the install directory.
-	# Keep it for the manual upgrade process...
-# 	ynh_secure_remove "$final_path/install"
+	# Do not delete the install directory. Keep it for the manual upgrade process...
+	# ynh_secure_remove "$final_path/install"
 fi
 
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
+
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # NGINX CONFIGURATION
@@ -110,18 +113,11 @@ ynh_script_progression --message="Upgrading NGINX web server configuration..." -
 ynh_add_nginx_config
 
 #=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
-
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config
-
-#=================================================
 # SPECIFIC UPGRADE
 #=================================================
 # UPDATE TP.CONFIG.PHP FILE
 #=================================================
+ynh_script_progression --message="Updating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
 tp_config_file="$final_path/includes/config/tp.config.php"
@@ -138,14 +134,11 @@ done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_mis
 echo ");" >> $tp_config_file
 
 #=================================================
-# CREATE A CRON FILE FOR AUTOMATIC BACKUP
+# UPDATE A CONFIG FILE
 #=================================================
+ynh_script_progression --message="Updating a configuration file..."
 
-echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
-
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
+ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
@@ -175,12 +168,11 @@ then
 fi
 
 #=================================================
-# UPDATE SETTINGS.PHP
+# CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
 #=================================================
+ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
-path_sk_file="/etc/$app/"
-
-ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
+echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
@@ -192,7 +184,11 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 # Sauf certains dossiers includes, install, files et upload
-chown -R $app $final_path/{includes,install,files,upload}
+chown -R $app $final_path/{includes,files,upload}
+if [ -d "$final_path/install" ]; then
+	chown -R $app "$final_path/install"
+fi
+
 # Restreint l'accès au dossier de backup
 chmod 750 $final_path/backups
 
@@ -204,12 +200,6 @@ chmod 750 $final_path/backups
 ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_OFF
 
 #=================================================
 # END OF SCRIPT
