@@ -184,7 +184,11 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 # Sauf certains dossiers includes, install, files et upload
-chown -R $app $final_path/{includes,install,files,upload}
+chown -R $app $final_path/{includes,files,upload}
+if [ -d "$final_path/install" ]; then
+	chown -R $app "$final_path/install"
+fi
+
 # Restreint l'accès au dossier de backup
 chmod 750 $final_path/backups
 
