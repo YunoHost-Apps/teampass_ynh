@@ -1,53 +1,53 @@
 {
-	"name": "Teampass",
-	"id": "teampass",
-	"packaging_format": 1,
-	"description": {
-		"en": "Passwords Manager",
-		"fr": "Gestionnaire de mots de passes."
-	},
-	"version": "2.1.27.15~ynh2",
-	"url": "http://www.teampass.net",
-	"upstream": {
+    "name": "Teampass",
+    "id": "teampass",
+    "packaging_format": 1,
+    "description": {
+        "en": "Passwords Manager",
+        "fr": "Gestionnaire de mots de passes."
+    },
+    "version": "2.1.27.15~ynh3",
+    "url": "http://www.teampass.net",
+    "upstream": {
         "license": "AGPL-3.0",
         "website": "http://www.teampass.net",
         "admindoc": "https://teampass.readthedocs.io/en/latest/",
         "code": "https://github.com/nilsteampassnet/TeamPass"
     },
-	"license": "AGPL-3.0",
-	"maintainer": {
-		"name": "",
-		"email": ""
-	},
-	"previous_maintainers": [{
-		"name": "Maniack Crudelis",
-		"email": "maniackc_dev@crudelis.fr"
-	}],
-	"requirements": {
+    "license": "AGPL-3.0",
+    "maintainer": {
+        "name": "",
+        "email": ""
+    },
+    "previous_maintainers": [{
+        "name": "Maniack Crudelis",
+        "email": "maniackc_dev@crudelis.fr"
+    }],
+    "requirements": {
         "yunohost": ">= 4.3.0"
-	},
-	"multi_instance": true,
-	"services": [
-		"nginx",
-		"php7.3-fpm",
-		"mysql"
-	],
-	"arguments": {
-		"install" : [
-			{
-				"name": "domain",
-				"type": "domain"
-			},
-			{
-				"name": "path",
-				"type": "path",
-				"example": "/teampass",
-				"default": "/teampass"
-			},
-			{
-				"name": "password",
-				"type": "password"
-			}
-		]
-	}
+    },
+    "multi_instance": true,
+    "services": [
+        "nginx",
+        "php7.3-fpm",
+        "mysql"
+    ],
+    "arguments": {
+        "install": [
+            {
+                "name": "domain",
+                "type": "domain"
+            },
+            {
+                "name": "path",
+                "type": "path",
+                "example": "/teampass",
+                "default": "/teampass"
+            },
+            {
+                "name": "password",
+                "type": "password"
+            }
+        ]
+    }
 }
