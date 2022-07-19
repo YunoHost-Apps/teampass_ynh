@@ -25,7 +25,7 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
-ynh_print_OFF; password_admin=$YNH_APP_ARG_PASSWORD; ynh_print_ON
+password=$YNH_APP_ARG_PASSWORD
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -85,14 +85,6 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=2
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
@@ -102,13 +94,22 @@ ynh_add_fpm_config
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
 # SPECIFIC SETUP
 #=================================================
 # FILL THE DATABASE
 #=================================================
+ynh_script_progression --message="Filling the database..."
 
 version="$(sed -n 3p $final_path/changelog.txt)"
-bcrypt_mdp="$(php $final_path/mdphash.php $password_admin)"
+bcrypt_mdp="$(php $final_path/mdphash.php $password)"
 timezone="$(cat /etc/timezone)"
 time="$(date +%s)"
 
@@ -136,6 +137,7 @@ ynh_secure_remove --file="$final_path/populate.sql"
 #=================================================
 # CREATE TP.CONFIG.PHP FILE
 #=================================================
+ynh_script_progression --message="Creating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
 tp_config_file="$final_path/includes/config/tp.config.php"
@@ -152,28 +154,27 @@ done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_mis
 echo ");" >> $tp_config_file
 
 #=================================================
-# CONFIGURE TEAMPASS
+# ADD A CONFIGURATION
 #=================================================
-
-path_sk_file=/etc/$app/
-mkdir $path_sk_file
+ynh_script_progression --message="Adding a configuration file..."
 
 ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
 
 #=================================================
 # CREATE A SALTKEY
 #=================================================
+ynh_script_progression --message="Creating a saltkey..."
 
 saltkey=$(ynh_string_random --length=32)
-ynh_replace_string "__SALTKEY__" "$saltkey" ../conf/sk.php
-ynh_add_config --template="../conf/sk.php" --destination="$path_sk_file/sk.php"
+mkdir /etc/$app/
+ynh_add_config --template="../conf/sk.php" --destination="/etc/$app/sk.php"
+chown -R $app /etc/$app/
+chmod 750 /etc/$app/
 
 #=================================================
-# COPY THE FILES
+# CREATE CSRFP
 #=================================================
-
-chown -R $app $path_sk_file
-chmod 750 $path_sk_file
+ynh_script_progression --message="Creating a csrfp..."
 
 cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
 ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
@@ -206,9 +207,9 @@ ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.j
 #=================================================
 # CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
 #=================================================
+ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
 echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
-# Add also a clean of old backup.
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
@@ -234,18 +235,7 @@ ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
-# SEND A README FOR THE ADMIN
-#=================================================
-
-message="If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/teampass_ynh
-
-!!! Be carreful when using this app, we have encountered many issues with the last upgrade. The next upgrade could be also difficult, and may need to reinstall the app and migrate manually."
-
-ynh_send_readme_to_admin --app_message="$message" --recipients="root"
-
-#=================================================
 # END OF SCRIPT
 #=================================================
 
 ynh_script_progression --message="Installation of $app completed" --last
-
