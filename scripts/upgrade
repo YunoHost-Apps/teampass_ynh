@@ -190,6 +190,7 @@ if [ -d "$final_path/install" ]; then
 fi
 
 # Restreint l'accès au dossier de backup
+mkdir -p $final_path/backups
 chmod 750 $final_path/backups
 
 #=================================================

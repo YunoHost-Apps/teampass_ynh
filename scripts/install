@@ -223,6 +223,7 @@ chown -R $app:www-data "$final_path"
 # Sauf certains dossiers includes, files et upload
 chown -R $app $final_path/{includes,files,upload}
 # Restreint l'accès au dossier de backup
+mkdir -p $final_path/backups
 chmod 750 $final_path/backups
 
 #=================================================
