@@ -44,6 +44,14 @@ ynh_remove_nginx_config	# Suppression de la configuration nginx
 ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 
 #=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Removing dependencies..."
+
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
+
+#=================================================
 # SPECIFIC REMOVE
 #=================================================
 # REMOVE THE SK.PHP FILE
