@@ -6,7 +6,7 @@
         "en": "Passwords Manager",
         "fr": "Gestionnaire de mots de passes."
     },
-    "version": "2.1.27.15~ynh3",
+    "version": "3.0.0.17~ynh1",
     "url": "http://www.teampass.net",
     "upstream": {
         "license": "AGPL-3.0",
@@ -19,10 +19,12 @@
         "name": "",
         "email": ""
     },
-    "previous_maintainers": [{
-        "name": "Maniack Crudelis",
-        "email": "maniackc_dev@crudelis.fr"
-    }],
+    "previous_maintainers": [
+        {
+            "name": "Maniack Crudelis",
+            "email": "maniackc_dev@crudelis.fr"
+        }
+    ],
     "requirements": {
         "yunohost": ">= 4.3.0"
     },
