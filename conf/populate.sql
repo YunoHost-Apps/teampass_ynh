@@ -5,6 +5,61 @@ ALTER DATABASE `__APP__` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 USE `__APP__`;
 
+CREATE TABLE IF NOT EXISTS `teampass_defuse_passwords` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`type` varchar(100) NOT NULL,
+	`object_id` int(12) NOT NULL,
+	`password` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_notification` (
+	`increment_id` INT(12) NOT NULL AUTO_INCREMENT,
+	`item_id` INT(12) NOT NULL,
+	`user_id` INT(12) NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_sharekeys_items` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`object_id` int(12) NOT NULL,
+	`user_id` int(12) NOT NULL,
+	`share_key` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_sharekeys_logs` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`object_id` int(12) NOT NULL,
+	`user_id` int(12) NOT NULL,
+	`share_key` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_sharekeys_fields` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`object_id` int(12) NOT NULL,
+	`user_id` int(12) NOT NULL,
+	`share_key` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_sharekeys_suggestions` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`object_id` int(12) NOT NULL,
+	`user_id` int(12) NOT NULL,
+	`share_key` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_sharekeys_files` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`object_id` int(12) NOT NULL,
+	`user_id` int(12) NOT NULL,
+	`share_key` text NOT NULL,
+	PRIMARY KEY (`increment_id`)
+) CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `teampass_items` (
 	`id` int(12) NOT null AUTO_INCREMENT,
 	`label` varchar(500) NOT NULL,
@@ -26,6 +81,7 @@ CREATE TABLE IF NOT EXISTS `teampass_items` (
 	`auto_update_pwd_frequency` tinyint(2) NOT null DEFAULT '0',
 	`auto_update_pwd_next_date` varchar(100) NOT null DEFAULT '0',
 	`encryption_type` VARCHAR(20) NOT NULL DEFAULT 'not_set',
+	`fa_icon` varchar(100) DEFAULT NULL,
 	PRIMARY KEY (`id`),
 	KEY    `restricted_inactif_idx` (`restricted_to`,`inactif`)
 ) CHARSET=utf8;
@@ -68,9 +124,8 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin', 'manager_edit', '1'),
 ('admin', 'cpassman_dir', '__FINALPATH__'),
 ('admin', 'cpassman_url', 'https://__DOMAIN____PATH__'),
-('admin', 'favicon', 'https://__DOMAIN____PATH__/favico.ico'),
+('admin', 'favicon', 'https://__DOMAIN____PATH__/favicon.ico'),
 ('admin', 'path_to_upload_folder', '__FINALPATH__/upload'),
-('admin', 'url_to_upload_folder', 'https://__DOMAIN____PATH__/upload'),
 ('admin', 'path_to_files_folder', '__FINALPATH__/files'),
 ('admin', 'url_to_files_folder', 'https://__DOMAIN____PATH__/files'),
 ('admin', 'activate_expiration', '0'),
@@ -154,7 +209,7 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin', 'duo', '0'),
 ('admin', 'enable_server_password_change', '0'),
 ('admin', 'ldap_object_class', 'person'),
-('admin', 'bck_script_path', '__FINALPATH__/backups/'),
+('admin', 'bck_script_path', '__FINALPATH__/backups'),
 ('admin', 'bck_script_filename', 'bck_teampass'),
 ('admin', 'syslog_enable', '0'),
 ('admin', 'syslog_host', 'localhost'),
@@ -174,7 +229,37 @@ INSERT INTO `teampass_misc` (`type`, `intitule`, `valeur`) VALUES
 ('admin', 'disable_show_forgot_pwd_link', '1'),
 ('admin', 'offline_key_level', '0'),
 ('admin', 'enable_http_request_login', '0'),
-('admin', 'ldap_and_local_authentication', '0');
+('admin', 'ldap_and_local_authentication', '0'),
+('admin', 'secure_display_image', '1'),
+('admin', 'upload_zero_byte_file', '0'),
+('admin', 'upload_all_extensions_file', '0'),
+('admin', 'bck_script_passkey', ''),
+('admin', 'admin_2fa_required', '1'),
+('admin', 'password_overview_delay', '4'),
+('admin', 'copy_to_clipboard_small_icons', '1'),
+('admin', 'duo_akey', ''),
+('admin', 'duo_ikey', ''),
+('admin', 'duo_skey', ''),
+('admin', 'duo_host', ''),
+('admin', 'teampass_version', ''),
+('admin', 'roles_allowed_to_print_select', ''),
+('admin', 'clipboard_life_duration', '30'),
+('admin', 'mfa_for_roles', ''),
+('admin', 'tree_counters', '0'),
+('admin', 'settings_offline_mode', '0'),
+('admin', 'settings_tree_counters', '0'),
+('admin', 'enable_massive_move_delete', '0'),
+('admin', 'email_debug_level', '0'),
+('admin', 'ga_reset_by_user', ''),
+('admin', 'onthefly-backup-key', ''),
+('admin', 'onthefly-restore-key', ''),
+('admin', 'ldap_user_dn_attribute', ''),
+('admin', 'ldap_dn_additional_user_dn', ''),
+('admin', 'ldap_user_object_filter', ''),
+('admin', 'ldap_bdn', ''),
+('admin', 'ldap_hosts', ''),
+('admin', 'ldap_password', ''),
+('admin', 'ldap_username', '');
 -- Default value
 --('admin', 'enable_pf_feature', '0'),
 --('admin', 'log_connections', '1'),
@@ -220,7 +305,9 @@ CREATE TABLE IF NOT EXISTS `teampass_nested_tree` (
 	`bloquer_creation` tinyint(1) NOT null DEFAULT '0',
 	`bloquer_modification` tinyint(1) NOT null DEFAULT '0',
 	`personal_folder` tinyint(1) NOT null DEFAULT '0',
-	`renewal_period` TINYINT(4) NOT null DEFAULT '0',
+	`renewal_period` int(5) NOT NULL DEFAULT 0,
+	`fa_icon` varchar(100) NOT NULL DEFAULT 'fas fa-folder',
+	`fa_icon_selected` varchar(100) NOT NULL DEFAULT 'fas fa-folder-open',
 	PRIMARY KEY (`id`),
 	KEY `nested_tree_parent_id` (`parent_id`),
 	KEY `nested_tree_nleft` (`nleft`),
@@ -229,7 +316,7 @@ CREATE TABLE IF NOT EXISTS `teampass_nested_tree` (
 	KEY `personal_folder_idx` (`personal_folder`)
 ) CHARSET=utf8;
 
-INSERT INTO teampass_nested_tree VALUES("1","0","__FOLDERS__","1","2","1","0","0","0","0");
+INSERT INTO teampass_nested_tree VALUES("1","0","__FOLDERS__","1","2","1","0","0","0","0","0","0");
 
 CREATE TABLE IF NOT EXISTS `teampass_rights` (
 	`id` int(12) NOT null AUTO_INCREMENT,
@@ -243,19 +330,19 @@ CREATE TABLE IF NOT EXISTS `teampass_users` (
 	`id` int(12) NOT null AUTO_INCREMENT,
 	`login` varchar(50) NOT NULL,
 	`pw` varchar(400) NOT NULL,
-	`groupes_visibles` varchar(250) NOT NULL,
+	`groupes_visibles` varchar(1000) NOT NULL,
 	`derniers` text NULL,
 	`key_tempo` varchar(100) NULL,
 	`last_pw_change` varchar(30) NULL,
 	`last_pw` text NULL,
 	`admin` tinyint(1) NOT null DEFAULT '0',
-	`fonction_id` varchar(255) NULL,
-	`groupes_interdits` varchar(255) NULL,
+	`fonction_id` varchar(1000) NULL,
+	`groupes_interdits` varchar(1000) NULL,
 	`last_connexion` varchar(30) NULL,
 	`gestionnaire` int(11) NOT null DEFAULT '0',
 	`email` varchar(300) NOT NULL DEFAULT 'none',
-	`favourites` varchar(300) NULL,
-	`latest_items` varchar(300) NULL,
+	`favourites` varchar(1000) NULL,
+	`latest_items` varchar(1000) NULL,
 	`personal_folder` int(1) NOT null DEFAULT '0',
 	`disabled` tinyint(1) NOT null DEFAULT '0',
 	`no_bad_attempts` tinyint(1) NOT null DEFAULT '0',
@@ -270,8 +357,8 @@ CREATE TABLE IF NOT EXISTS `teampass_users` (
 	`psk` varchar(400) NULL,
 	`ga` varchar(50) NULL,
 	`ga_temporary_code` VARCHAR(20) NOT NULL DEFAULT 'none',
-	`avatar` varchar(255) NULL,
-	`avatar_thumb` varchar(255) NULL,
+	`avatar` varchar(1000) NULL,
+	`avatar_thumb` varchar(1000) NULL,
 	`upgrade_needed` BOOLEAN NOT NULL DEFAULT FALSE,
 	`treeloadstrategy` varchar(30) NOT null DEFAULT 'full',
 	`can_manage_all_users` tinyint(1) NOT NULL DEFAULT '0',
@@ -279,13 +366,22 @@ CREATE TABLE IF NOT EXISTS `teampass_users` (
 	`agses-usercardid` VARCHAR(50) NOT NULL DEFAULT '0',
 	`encrypted_psk` text NULL,
 	`user_ip` varchar(400) NOT null DEFAULT 'none',
+	`user_ip_lastdate` varchar(50) NULL DEFAULT NULL,
 	`user_api_key` varchar(500) NOT null DEFAULT 'none',
+    `yubico_user_key` varchar(100) NOT null DEFAULT 'none',
+    `yubico_user_id` varchar(100) NOT null DEFAULT 'none',
+    `public_key` TEXT DEFAULT NULL,
+    `private_key` TEXT DEFAULT NULL,
+    `special` VARCHAR(250) NOT NULL DEFAULT 'none',
+    `auth_type` VARCHAR(200) NOT NULL DEFAULT 'local',	
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `login` (`login`)
 ) CHARSET=utf8;
 
-INSERT INTO `teampass_users` (`id`, `login`, `pw`, `admin`, `gestionnaire`, `personal_folder`, `groupes_visibles`, `email`, `encrypted_psk`, `last_pw_change`) VALUES
-('1', 'admin', '__BCRYPT_MDP__', '1', '0', '0', '', '', '', '__TIME__');
+INSERT INTO `teampass_users` (`id`, `login`, `pw`, `groupes_visibles`, `derniers`, `key_tempo`, `last_pw_change`, `last_pw`, `admin`) VALUES
+(1, 'admin', '__BCRYPT_MDP__', '1', NULL, '', '__TIME__', NULL, 1),
+(9999991, 'OTV', '', '', '', '', '', '', 1),
+(9999999, 'API', '', '', '', '', '', '', 1);
 
 CREATE TABLE IF NOT EXISTS `teampass_tags` (
 	`id` int(12) NOT null AUTO_INCREMENT,
@@ -307,12 +403,14 @@ CREATE TABLE IF NOT EXISTS `teampass_log_system` (
 CREATE TABLE IF NOT EXISTS `teampass_files` (
 	`id` int(11) NOT null AUTO_INCREMENT,
 	`id_item` int(11) NOT NULL,
-	`name` varchar(100) NOT NULL,
+	`name` TEXT NOT NULL,
 	`size` int(10) NOT NULL,
 	`extension` varchar(10) NOT NULL,
 	`type` varchar(255) NOT NULL,
 	`file` varchar(50) NOT NULL,
 	`status` varchar(50) NOT NULL DEFAULT '0',
+	`content` longblob DEFAULT NULL,
+	`confirmed` INT(1) NOT NULL DEFAULT '0',	
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
@@ -325,7 +423,7 @@ CREATE TABLE IF NOT EXISTS `teampass_cache` (
 	`id_tree` int(12) NOT NULL,
 	`perso` tinyint(1) NOT NULL,
 	`restricted_to` varchar(200) DEFAULT NULL,
-	`login` varchar(200) DEFAULT NULL,
+	`login` text DEFAULT NULL,
 	`folder` varchar(300) NOT NULL,
 	`author` varchar(50) NOT NULL,
 	`renewal_period` tinyint(4) NOT NULL DEFAULT '0',
@@ -406,6 +504,7 @@ INSERT INTO `teampass_languages` (`name`, `label`, `code`, `flag`) VALUES
 ('turkish', 'Turkish' , 'tr', 'tr.png'),
 ('norwegian', 'Norwegian' , 'no', 'no.png'),
 ('japanese', 'Japanese' , 'ja', 'ja.png'),
+('portuguese', 'Portuguese', 'pr', 'pr.png'),
 ('portuguese_br', 'Portuguese (Brazil)' , 'pr-bt', 'pr-bt.png'),
 ('chinese', 'Chinese' , 'cn', 'cn.png'),
 ('swedish', 'Swedish' , 'se', 'se.png'),
@@ -454,8 +553,11 @@ CREATE TABLE IF NOT EXISTS `teampass_categories` (
 	`level` int(2) NOT NULL,
 	`description` text NULL,
 	`type` varchar(50) NULL default '',
+	`masked` tinyint(1) NOT NULL DEFAULT 0,
 	`order` int(12) NOT NULL default '0',
 	`encrypted_data` tinyint(1) NOT NULL default '1',
+	`role_visibility` varchar(255) NOT NULL DEFAULT 'all',
+	`is_mandatory` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
@@ -466,13 +568,15 @@ CREATE TABLE IF NOT EXISTS `teampass_categories_items` (
 	`data` text NOT NULL,
 	`data_iv` text NOT NULL,
 	`encryption_type` VARCHAR(20) NOT NULL DEFAULT 'not_set',
+	`is_mandatory` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_categories_folders` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
 	`id_category` int(12) NOT NULL,
 	`id_folder` int(12) NOT NULL,
-	PRIMARY KEY (`id_category`)
+	PRIMARY KEY (`increment_id`)
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_api` (
@@ -490,6 +594,7 @@ CREATE TABLE IF NOT EXISTS `teampass_otv` (
 	`code` varchar(100) NOT NULL,
 	`item_id` int(12) NOT NULL,
 	`originator` int(12) NOT NULL,
+	`encrypted` text NOT NULL,
 	PRIMARY KEY (`id`)
 ) CHARSET=utf8;
 
@@ -523,7 +628,7 @@ CREATE TABLE IF NOT EXISTS `teampass_export` (
 ) CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `teampass_tokens` (
-	`id` int(12) NOT NULL,
+	`id` int(12) NOT NULL AUTO_INCREMENT,
 	`user_id` int(12) NOT NULL,
 	`token` varchar(255) NOT NULL,
 	`reason` varchar(255) NOT NULL,
@@ -546,4 +651,11 @@ CREATE TABLE IF NOT EXISTS `teampass_items_change` (
 	`user_id` int(12) NOT NULL,
 	`timestamp` varchar(50) NOT NULL DEFAULT 'none',
 	PRIMARY KEY (`id`)
+) CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `teampass_templates` (
+	`increment_id` int(12) NOT NULL AUTO_INCREMENT,
+	`item_id` int(12) NOT NULL,
+	`category_id` int(12) NOT NULL,
+	PRIMARY KEY (`increment_id`)
 ) CHARSET=utf8;

@@ -96,6 +96,13 @@ chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
 #=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..."
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
@@ -190,6 +197,7 @@ if [ -d "$final_path/install" ]; then
 fi
 
 # Restreint l'accès au dossier de backup
+mkdir -p $final_path/backups
 chmod 750 $final_path/backups
 
 #=================================================
