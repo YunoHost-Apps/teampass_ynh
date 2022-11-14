@@ -19,8 +19,7 @@ TeamPass is a Passwords Manager dedicated for managing passwords in a collaborat
 Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
 
-**Shipped version:** 3.0.0.19~ynh1
-
+**Shipped version:** 3.0.0.21~ynh1
 
 ## Screenshots
 
