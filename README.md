@@ -26,13 +26,6 @@ Teampass offers a large set of features permitting to manage your passwords and 
 
 ![Screenshot of Teampass](./doc/screenshots/screenshot.png)
 
-## Disclaimers / important information
-
-## Configuration
-
-Use the admin panel of your teampass to configure this app.  
-To find the admin panel, use the login 'admin' and the password choose during the installation.
-
 ## Documentation and resources
 
 * Official app website: <http://www.teampass.net>
