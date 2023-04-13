@@ -6,7 +6,7 @@
         "en": "Passwords Manager",
         "fr": "Gestionnaire de mots de passes."
     },
-    "version": "3.0.0.23~ynh1",
+    "version": "3.0.4~ynh1",
     "url": "http://www.teampass.net",
     "upstream": {
         "license": "AGPL-3.0",
