@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.0.23.tar.gz
-SOURCE_SUM=b010d1ea2cf0ace9fbeef30b448e864e3bc767f9f6e5beac79f0bf7e359005e7
+SOURCE_URL=https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.7.tar.gz
+SOURCE_SUM=08037694c726027a0197659405a660ad74d648a75677c9557b5374e161f405d2
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
