@@ -38,7 +38,7 @@ To find the admin panel, use the login 'admin' and the password choose during th
 * Official app website: <http://www.teampass.net>
 * Official admin documentation: <https://teampass.readthedocs.io/en/latest/>
 * Upstream app code repository: <https://github.com/nilsteampassnet/TeamPass>
-* YunoHost documentation for this app: <https://yunohost.org/app_teampass>
+* YunoHost Store: <https://apps.yunohost.org/app/teampass>
 * Report a bug: <https://github.com/YunoHost-Apps/teampass_ynh/issues>
 
 ## Developer info
