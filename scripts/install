@@ -42,7 +42,7 @@ ynh_add_nginx_config
 ynh_script_progression --message="Filling the database..."
 
 version=$(ynh_app_upstream_version)
-bcrypt_mdp="$(php $install_dir/mdphash.php $password)"
+bcrypt_mdp=$(python3 -c 'import bcrypt, sys; print(bcrypt.hashpw(sys.stdin.read().strip().encode(), bcrypt.gensalt(rounds=10)).decode())' <<< "$password")
 timezone="$(cat /etc/timezone)"
 time="$(date +%s)"
 
