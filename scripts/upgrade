@@ -44,15 +44,8 @@ chown -R $app:www-data "$install_dir"
 #=================================================
 ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
 
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config --usage=low --footprint=low
+ynh_add_fpm_config
 
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 #=================================================
@@ -81,7 +74,7 @@ echo ");" >> $tp_config_file
 #=================================================
 ynh_script_progression --message="Updating a configuration file..."
 
-ynh_add_config --template="../conf/settings.php" --destination="$install_dir/includes/config/settings.php"
+ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
