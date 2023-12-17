@@ -3,7 +3,7 @@ packaging_format = 2
 id = "teampass"
 name = "Teampass"
 description.en = "Passwords Manager"
-description.fr = "Gestionnaire de mots de passes."
+description.fr = "Gestionnaire de mots de passes"
 
 version = "3.0.0.23~ynh1"
 
