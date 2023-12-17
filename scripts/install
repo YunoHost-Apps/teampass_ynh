@@ -28,10 +28,8 @@ chown -R $app:www-data "$install_dir"
 #=================================================
 ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
 
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config --usage=low --footprint=low
+ynh_add_fpm_config
 
-# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 #=================================================
@@ -72,7 +70,7 @@ ynh_secure_remove --file="$install_dir/populate.sql"
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
 
-ynh_add_config --template="../conf/settings.php" --destination="$install_dir/includes/config/settings.php"
+ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
 #=================================================
 # CREATE TP.CONFIG.PHP FILE
@@ -92,7 +90,7 @@ ynh_script_progression --message="Creating a saltkey..."
 
 saltkey=$(ynh_string_random --length=32)
 mkdir /etc/$app/
-ynh_add_config --template="../conf/sk.php" --destination="/etc/$app/sk.php"
+ynh_add_config --template="sk.php" --destination="/etc/$app/sk.php"
 chown -R $app /etc/$app/
 chmod 750 /etc/$app/
 
