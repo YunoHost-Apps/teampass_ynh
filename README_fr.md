@@ -26,13 +26,6 @@ Teampass offre un large ensemble de fonctionnalités permettant de gérer vos mo
 
 ![Capture d’écran de Teampass](./doc/screenshots/screenshot.png)
 
-## Avertissements / informations importantes
-
-## Configuration
-
-Utilisez le panel admin de votre teampass pour configurer cette app.  
-Pour trouver le panel admin, utiliser le login 'admin' et le mot de passe choisi durant l'installation.
-
 ## Documentations et ressources
 
 * Site officiel de l’app : <http://www.teampass.net>
