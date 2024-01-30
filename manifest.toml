@@ -7,7 +7,7 @@ name = "Teampass"
 description.en = "Passwords Manager"
 description.fr = "Gestionnaire de mots de passes"
 
-version = "3.0.0.23~ynh1"
+version = "3.0.0.23~ynh2"
 
 maintainers = []
 
@@ -46,9 +46,11 @@ ram.runtime = "50M"
     type = "password"
 
 [resources]
-        [resources.sources.main]
-        url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.0.23.tar.gz"
-        sha256 = "b010d1ea2cf0ace9fbeef30b448e864e3bc767f9f6e5beac79f0bf7e359005e7"
+    [resources.sources.main]
+    url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.0.23.tar.gz"
+    sha256 = "b010d1ea2cf0ace9fbeef30b448e864e3bc767f9f6e5beac79f0bf7e359005e7"
+
+    autoupdate.strategy = "latest_github_tag"
 
     [resources.system_user]
 
@@ -58,7 +60,17 @@ ram.runtime = "50M"
     main.url = "/"
 
     [resources.apt]
-    packages = "mariadb-server, php8.2-mbstring, php8.2-bcmath, php8.2-iconv, php8.2-xml, php8.2-gd, php8.2-curl, php8.2-mysqli, python3-bcrypt"
+    packages = [
+        "mariadb-server",
+        "php8.2-mbstring",
+        "php8.2-bcmath",
+        "php8.2-iconv",
+        "php8.2-xml",
+        "php8.2-gd",
+        "php8.2-curl",
+        "php8.2-mysqli",
+        "python3-bcrypt",
+    ]
 
     [resources.database]
     type = "mysql"
