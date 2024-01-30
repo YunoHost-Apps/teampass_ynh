@@ -10,40 +10,10 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..."
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$db_name
-db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-
-#=================================================
 # CHECK VERSION
 #=================================================
-ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -51,31 +21,6 @@ ynh_abort_if_errors
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
-
-if [ -z "$final_path" ]; then	# Si final_path n'est pas renseigné dans app setting
-	final_path=/var/www/$app
-	ynh_app_setting_set $app final_path $final_path
-fi
-
-if [ -z "$db_name" ]; then	# Si db_name n'est pas renseigné dans app setting
-	db_name=$(ynh_sanitize_dbid $app)
-	ynh_app_setting_set $app db_name $db_name
-fi
-
-# Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -86,37 +31,21 @@ then
 	ynh_script_progression --message="Upgrading source files..."
 
 	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source --dest_dir="$final_path"
+	ynh_setup_source --dest_dir="$install_dir"
 	# Do not delete the install directory. Keep it for the manual upgrade process...
-	# ynh_secure_remove "$final_path/install"
+	# ynh_secure_remove "$install_dir/install"
 fi
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
-
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading dependencies..."
-
-ynh_install_app_dependencies $pkg_dependencies
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
 
-# Create a dedicated PHP-FPM config
 ynh_add_fpm_config
-phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 #=================================================
@@ -127,7 +56,7 @@ ynh_add_nginx_config
 ynh_script_progression --message="Updating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
-tp_config_file="$final_path/includes/config/tp.config.php"
+tp_config_file="$install_dir/includes/config/tp.config.php"
 
 echo "<?php
 global \$SETTINGS;
@@ -145,22 +74,22 @@ echo ");" >> $tp_config_file
 #=================================================
 ynh_script_progression --message="Updating a configuration file..."
 
-ynh_add_config --template="../conf/settings.php" --destination="$final_path/includes/config/settings.php"
+ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	# Move settings.php from old teampass version
-	if [ ! -e "$final_path/includes/config/settings.php" ]
+	if [ ! -e "$install_dir/includes/config/settings.php" ]
 	then
-		mv "$final_path/includes/settings.php" "$final_path/includes/config/settings.php"
+		mv "$install_dir/includes/settings.php" "$install_dir/includes/config/settings.php"
 	fi
 
 	# Create csrfp.config.php
-	if [ ! -e "$final_path/includes/libraries/csrfp/libs/csrfp.config.php" ]
+	if [ ! -e "$install_dir/includes/libraries/csrfp/libs/csrfp.config.php" ]
 	then
-		cp $final_path/includes/libraries/csrfp/libs/csrfp.config.sample.php $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-		ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-		ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $final_path/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+		cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+		ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+		ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 	fi
 
 	# Run database upgrades
@@ -179,35 +108,26 @@ fi
 #=================================================
 ynh_script_progression --message="Creating a cron file for an automatic backup..."
 
-echo "0 0 * * 0 $app cd $final_path/backups && php script.backup.php" > /etc/cron.d/$app
+echo "0 0 * * 0 $app cd $install_dir/backups && php script.backup.php" > /etc/cron.d/$app
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
 #=================================================
 
 # Les fichiers appartiennent à root
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 # Sauf certains dossiers includes, install, files et upload
-chown -R $app $final_path/{includes,files,upload}
-if [ -d "$final_path/install" ]; then
-	chown -R $app "$final_path/install"
+chown -R $app $install_dir/{includes,files,upload}
+if [ -d "$install_dir/install" ]; then
+	chown -R $app "$install_dir/install"
 fi
 
 # Restreint l'accès au dossier de backup
-mkdir -p $final_path/backups
-chmod 750 $final_path/backups
-
-#=================================================
-# GENERIC FINALISATION
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-ynh_systemd_action --service_name=nginx --action=reload
+mkdir -p $install_dir/backups
+chmod 750 $install_dir/backups
 
 #=================================================
 # END OF SCRIPT
