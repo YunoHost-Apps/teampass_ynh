@@ -20,18 +20,11 @@ TeamPass est un gestionnaire de mots de passe dédié à la gestion des mots de 
 Teampass offre un large ensemble de fonctionnalités permettant de gérer vos mots de passe et les données associées de manière organisée dans le respect des droits d'accès définis pour chaque utilisateur.
 
 
-**Version incluse :** 3.0.0.23~ynh1
+**Version incluse :** 3.0.0.23~ynh2
 
 ## Captures d’écran
 
 ![Capture d’écran de Teampass](./doc/screenshots/screenshot.png)
-
-## Avertissements / informations importantes
-
-## Configuration
-
-Utilisez le panel admin de votre teampass pour configurer cette app.  
-Pour trouver le panel admin, utiliser le login 'admin' et le mot de passe choisi durant l'installation.
 
 ## Documentations et ressources
 
