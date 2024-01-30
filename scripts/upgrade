@@ -10,43 +10,24 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CHECK VERSION
-#=================================================
-
-upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..."
+# ynh_script_progression --message="Ensuring downward compatibility..."
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression --message="Upgrading source files..."
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-	ynh_script_progression --message="Upgrading source files..."
-
-	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source --dest_dir="$install_dir"
-	# Do not delete the install directory. Keep it for the manual upgrade process...
-	# ynh_secure_remove "$install_dir/install"
-fi
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source --dest_dir="$install_dir" --full_replace=1 --keep="includes/config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
+# Do not delete the install directory. Keep it for the manual upgrade process...
+# ynh_secure_remove "$install_dir/install"
 
 chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
-#=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
-
-ynh_add_fpm_config
-
-ynh_add_nginx_config
+chown -R "$app:www-data" "$install_dir"
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -76,39 +57,27 @@ ynh_script_progression --message="Updating a configuration file..."
 
 ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-	# Move settings.php from old teampass version
-	if [ ! -e "$install_dir/includes/config/settings.php" ]
-	then
-		mv "$install_dir/includes/settings.php" "$install_dir/includes/config/settings.php"
-	fi
-
-	# Create csrfp.config.php
-	if [ ! -e "$install_dir/includes/libraries/csrfp/libs/csrfp.config.php" ]
-	then
-		cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-		ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-		ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
-	fi
-
-	# Run database upgrades
-	# Upgrade to 2.1.23.4
-	#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc ADD id INT(12) NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id);" $app >&2
-	# Upgrade to 2.1.24.4
-	#ynh_mysql_execute_as_root "ALTER TABLE teampass_items CHANGE pw_len pw_len INT(5) NOT NULL DEFAULT '0';" $app >&2
-	# Upgrade to 2.1.25.2
-	#ynh_mysql_execute_as_root "INSERT INTO teampass_misc (id, type, intitule, valeur) VALUES (NULL, 'admin', 'encryption_protocol', 'ctr');" $app >&2
-	# Upgrade to 2.1.27.x
-	#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
+# Move settings.php from old teampass version
+if [ ! -e "$install_dir/includes/config/settings.php" ]; then
+    mv "$install_dir/includes/settings.php" "$install_dir/includes/config/settings.php"
 fi
 
-#=================================================
-# CREATE A CRON FILE FOR AN AUTOMATIC BACKUP
-#=================================================
-ynh_script_progression --message="Creating a cron file for an automatic backup..."
+# Create csrfp.config.php
+if [ ! -e "$install_dir/includes/libraries/csrfp/libs/csrfp.config.php" ]; then
+    cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+    ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+    ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+fi
 
-echo "0 0 * * 0 $app cd $install_dir/backups && php script.backup.php" > /etc/cron.d/$app
+# Run database upgrades
+# Upgrade to 2.1.23.4
+#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc ADD id INT(12) NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id);" $app >&2
+# Upgrade to 2.1.24.4
+#ynh_mysql_execute_as_root "ALTER TABLE teampass_items CHANGE pw_len pw_len INT(5) NOT NULL DEFAULT '0';" $app >&2
+# Upgrade to 2.1.25.2
+#ynh_mysql_execute_as_root "INSERT INTO teampass_misc (id, type, intitule, valeur) VALUES (NULL, 'admin', 'encryption_protocol', 'ctr');" $app >&2
+# Upgrade to 2.1.27.x
+#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
@@ -122,12 +91,23 @@ chown -R $app:www-data "$install_dir"
 # Sauf certains dossiers includes, install, files et upload
 chown -R $app $install_dir/{includes,files,upload}
 if [ -d "$install_dir/install" ]; then
-	chown -R $app "$install_dir/install"
+    chown -R $app "$install_dir/install"
 fi
 
 # Restreint l'accès au dossier de backup
 mkdir -p $install_dir/backups
 chmod 750 $install_dir/backups
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
+
+ynh_add_fpm_config
+
+ynh_add_nginx_config
+
+ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # END OF SCRIPT

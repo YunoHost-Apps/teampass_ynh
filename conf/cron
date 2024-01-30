@@ -1,0 +1,1 @@
+0 0 * * 0 __APP__ cd __INSTALL_DIR__/backups && php__PHPVERSION__ script.backup.php
