@@ -5,7 +5,7 @@ NON debe editarse manualmente.
 
 # Teampass para YunoHost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
 
 [![Instalar Teampass con YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 
@@ -20,7 +20,7 @@ TeamPass is a Passwords Manager dedicated for managing passwords in a collaborat
 Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
 
-**Versión proporcionada:** 3.0.0.23~ynh2
+**Versión proporcionada:** 3.1.1~ynh1
 
 ## Capturas de pantalla
 
