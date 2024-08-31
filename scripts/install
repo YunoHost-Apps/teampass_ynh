@@ -1,34 +1,27 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=7
+ynh_script_progression "Setting up source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir"
 
 # Delete the install directory.
-ynh_secure_remove --file="$install_dir/install"
+ynh_safe_rm "$install_dir/install"
 
-chmod -R o-rwx "$install_dir"
-chown -R "$app:www-data" "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 #=================================================
 # SPECIFIC SETUP
 #=================================================
 # FILL THE DATABASE
 #=================================================
-ynh_script_progression --message="Filling the database..."
+ynh_script_progression "Filling the database..."
 
 version=$(ynh_app_upstream_version)
 bcrypt_mdp=$(python3 -c 'import bcrypt, sys; print(bcrypt.hashpw(sys.stdin.read().strip().encode(), bcrypt.gensalt(rounds=10)).decode())' <<< "$password")
@@ -46,53 +39,55 @@ else
     roles=users
 fi
 
-ynh_add_config --template="../conf/populate.sql" --destination="$install_dir/populate.sql"
+ynh_config_add --template="populate.sql" --destination="$install_dir/populate.sql"
 
 # Enregistre les infos dans la config YunoHost
-ynh_app_setting_set --app="$app" --key=langue --value=$langue
+ynh_app_setting_set --key=langue --value=$langue
 
 # Import du fichier SQL
-ynh_mysql_connect_as "$db_name" "$db_pwd" "$db_name" < "$install_dir/populate.sql"
-ynh_secure_remove --file="$install_dir/populate.sql"
+ynh_mysql_db_shell < "$install_dir/populate.sql"
+ynh_safe_rm "$install_dir/populate.sql"
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..."
+ynh_script_progression "Adding $app's configuration..."
 
-ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
+ynh_config_add --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
 #=================================================
 # CREATE TP.CONFIG.PHP FILE
 #=================================================
-ynh_script_progression --message="Creating tp.config.php file..."
+ynh_script_progression "Creating tp.config.php file..."
 
 cp "$YNH_APP_BASEDIR/conf/maketpconfig.php" "$install_dir/"
 
 pushd $install_dir
-    ynh_exec_as "$app" "php$phpversion" maketpconfig.php
+    ynh_exec_as_app "php$php_version" maketpconfig.php
 popd
-ynh_secure_remove "$install_dir/maketpconfig.php"
+ynh_safe_rm "$install_dir/maketpconfig.php"
 
 #=================================================
 # CREATE A SALTKEY
 #=================================================
-ynh_script_progression --message="Creating a saltkey..."
+ynh_script_progression "Creating a saltkey..."
 
 saltkey=$(ynh_string_random --length=32)
 mkdir /etc/$app/
-ynh_add_config --template="sk.php" --destination="/etc/$app/sk.php"
+ynh_config_add --template="sk.php" --destination="/etc/$app/sk.php"
 chown -R $app /etc/$app/
 chmod 750 /etc/$app/
 
 #=================================================
 # CREATE CSRFP
 #=================================================
-ynh_script_progression --message="Creating a csrfp..."
+ynh_script_progression "Creating a csrfp..."
 
 cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+# FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
+ynh_replace "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+# FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
+ynh_replace "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 
 #=================================================
 # CREATE THE USERS
@@ -110,10 +105,10 @@ ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.j
 #     password=$(php $install_dir/mdphash.php $real_password)
 # 	mail=$(ldapsearch -h localhost -b ou=users,dc=yunohost,dc=org -x uid=$teampassuser mail | grep mail: | sed 's/mail: //' | head -n1)
 	# Creation de l'utilisateur
-#     ynh_mysql_execute_as_root "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');" $app
+#     ynh_mysql_db_shell <<< "INSERT INTO teampass_users (id, login, pw, groupes_visibles, derniers, key_tempo, last_pw_change, last_pw, admin, fonction_id, groupes_interdits, last_connexion, gestionnaire, email, favourites, latest_items, personal_folder, can_create_root_folder) VALUES (NULL, '$teampassuser', '$password', '1', '', '', '', '', '0', '1', '', '', '0', '$mail', '', '', '1', '1');" $app
 	# Creation du repertoire personnel
-# 	id_user=$(ynh_mysql_execute_as_root "SELECT id from teampass_users where login='$teampassuser';" $app)
-#     ynh_mysql_execute_as_root "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);" $app
+# 	id_user=$(ynh_mysql_db_shell <<< "SELECT id from teampass_users where login='$teampassuser';" $app)
+#     ynh_mysql_db_shell <<< "INSERT INTO teampass_nested_tree (id, parent_id, title, nleft, nright, nlevel, bloquer_creation, bloquer_modification, personal_folder, renewal_period) VALUES (NULL, 0, '$id_user', 0, 0, 1, 0, 0, 1, 0);" $app
 #
 #     ((id++))
 # done
@@ -121,23 +116,22 @@ ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.j
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
-ynh_add_nginx_config
+ynh_config_add_nginx
 
-ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
+ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
 #=================================================
 
 # Les fichiers appartiennent à root
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R "$app:www-data" "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 # Sauf certains dossiers includes, files et upload
 chown -R "$app" "$install_dir"/{includes,files,upload}
 # Restreint l'accès au dossier de backup
@@ -148,4 +142,4 @@ chmod 750 "$install_dir/backups"
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"

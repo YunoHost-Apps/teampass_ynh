@@ -1,40 +1,29 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-# ynh_script_progression --message="Ensuring downward compatibility..."
+# ynh_script_progression "Ensuring downward compatibility..."
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Upgrading source files..."
+ynh_script_progression "Upgrading source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir" --full_replace=1 --keep="includes/config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
+ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="includes/config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
 # Do not delete the install directory. Keep it for the manual upgrade process...
-# ynh_secure_remove "$install_dir/install"
+# ynh_safe_rm "$install_dir/install"
 
-chmod -R o-rwx "$install_dir"
-chown -R "$app:www-data" "$install_dir"
-
-#=================================================
-# SPECIFIC UPGRADE
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 #=================================================
 # UPDATE TP.CONFIG.PHP FILE
 #=================================================
-ynh_script_progression --message="Updating tp.config.php file..."
+ynh_script_progression "Updating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
 tp_config_file="$install_dir/includes/config/tp.config.php"
@@ -47,15 +36,15 @@ while read settings
 do
 	echo -n "    '$(echo $settings | awk '{ print $1 }')'" >> $tp_config_file
 	echo " => '$(echo $settings | cut -d' ' -f2-)'," >> $tp_config_file
-done <<< "$(ynh_mysql_execute_as_root "SELECT intitule, valeur FROM teampass_misc" $app)"
+done <<< "$(ynh_mysql_db_shell <<< "SELECT intitule, valeur FROM teampass_misc" $app)"
 echo ");" >> $tp_config_file
 
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Updating a configuration file..."
+ynh_script_progression "Updating configuration..."
 
-ynh_add_config --template="settings.php" --destination="$install_dir/includes/config/settings.php"
+ynh_config_add --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
 # Move settings.php from old teampass version
 if [ ! -e "$install_dir/includes/config/settings.php" ]; then
@@ -65,29 +54,30 @@ fi
 # Create csrfp.config.php
 if [ ! -e "$install_dir/includes/libraries/csrfp/libs/csrfp.config.php" ]; then
     cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-    ynh_replace_string "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-    ynh_replace_string "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+    # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
+ynh_replace "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+    # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
+ynh_replace "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 fi
 
 # Run database upgrades
 # Upgrade to 2.1.23.4
-#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc ADD id INT(12) NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id);" $app >&2
+#ynh_mysql_db_shell <<< "ALTER TABLE teampass_misc ADD id INT(12) NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id);" $app >&2
 # Upgrade to 2.1.24.4
-#ynh_mysql_execute_as_root "ALTER TABLE teampass_items CHANGE pw_len pw_len INT(5) NOT NULL DEFAULT '0';" $app >&2
+#ynh_mysql_db_shell <<< "ALTER TABLE teampass_items CHANGE pw_len pw_len INT(5) NOT NULL DEFAULT '0';" $app >&2
 # Upgrade to 2.1.25.2
-#ynh_mysql_execute_as_root "INSERT INTO teampass_misc (id, type, intitule, valeur) VALUES (NULL, 'admin', 'encryption_protocol', 'ctr');" $app >&2
+#ynh_mysql_db_shell <<< "INSERT INTO teampass_misc (id, type, intitule, valeur) VALUES (NULL, 'admin', 'encryption_protocol', 'ctr');" $app >&2
 # Upgrade to 2.1.27.x
-#ynh_mysql_execute_as_root "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
+#ynh_mysql_db_shell <<< "ALTER TABLE teampass_misc CHANGE id increment_id INT(12) NOT NULL AUTO_INCREMENT;" $app >&2
 
 #=================================================
 # SECURING FILES AND DIRECTORIES
 #=================================================
 
 # Les fichiers appartiennent à root
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
 # Sauf certains dossiers includes, install, files et upload
 chown -R $app $install_dir/{includes,files,upload}
 if [ -d "$install_dir/install" ]; then
@@ -101,16 +91,16 @@ chmod 750 $install_dir/backups
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
+ynh_script_progression "Upgrading PHP-FPM configuration..."
 
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
-ynh_add_nginx_config
+ynh_config_add_nginx
 
-ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
+ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"
