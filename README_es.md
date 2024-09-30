@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # Teampass para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
 
 [![Instalar Teampass con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 
@@ -36,7 +36,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 
