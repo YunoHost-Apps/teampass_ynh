@@ -5,7 +5,7 @@ NON debe editarse manualmente.
 
 # Teampass para YunoHost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
 
 [![Instalar Teampass con YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 

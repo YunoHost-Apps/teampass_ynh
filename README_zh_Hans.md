@@ -5,7 +5,7 @@
 
 # YunoHost 上的 Teampass
 
-[![集成程度](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass) ![工作状态](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![集成程度](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
 
 [![使用 YunoHost 安装 Teampass](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 
