@@ -8,14 +8,10 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression "Setting up source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir"
 
-# Delete the install directory.
 ynh_safe_rm "$install_dir/install"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 #=================================================
 # SPECIFIC SETUP
 #=================================================
@@ -65,6 +61,7 @@ cp "$YNH_APP_BASEDIR/conf/maketpconfig.php" "$install_dir/"
 pushd $install_dir
     ynh_exec_as_app "php$php_version" maketpconfig.php
 popd
+
 ynh_safe_rm "$install_dir/maketpconfig.php"
 
 #=================================================
@@ -84,10 +81,8 @@ chmod 750 /etc/$app/
 ynh_script_progression "Creating a csrfp..."
 
 cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-# FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-# FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+ynh_replace --match="CSRFP_TOKEN\" => \"" --replace="&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" --file="$install_dir/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne un token, valide en hexadécimal
+ynh_replace --match="jsUrl\" => \"" --replace="&includes/libraries/csrfp/js/csrfprotector.js" --file="$install_dir/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne l'adresse de csrfprotector.js
 
 #=================================================
 # CREATE THE USERS
@@ -129,9 +124,9 @@ ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 #=================================================
 
 # Les fichiers appartiennent à root
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 # Sauf certains dossiers includes, files et upload
 chown -R "$app" "$install_dir"/{includes,files,upload}
 # Restreint l'accès au dossier de backup

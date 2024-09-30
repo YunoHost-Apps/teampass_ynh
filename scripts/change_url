@@ -26,8 +26,7 @@ ynh_mysql_db_shell <<< "UPDATE ${app}_misc SET valeur='https://$new_domain$new_p
 # UPDATE TP.CONFIG.PHP FILE
 #=================================================
 
-# FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "https://$old_domain$old_path" "https://$new_domain$new_path" "$install_dir/includes/config/tp.config.php"
+ynh_replace --match="https://$old_domain$old_path" --replace="https://$new_domain$new_path" --file="$install_dir/includes/config/tp.config.php"
 
 #=================================================
 # END OF SCRIPT

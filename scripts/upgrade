@@ -4,22 +4,14 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-# ynh_script_progression "Ensuring downward compatibility..."
-
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Upgrading source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="includes/config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
 # Do not delete the install directory. Keep it for the manual upgrade process...
 # ynh_safe_rm "$install_dir/install"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 #=================================================
 # UPDATE TP.CONFIG.PHP FILE
 #=================================================
@@ -75,9 +67,9 @@ fi
 #=================================================
 
 # Les fichiers appartiennent à root
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 # Sauf certains dossiers includes, install, files et upload
 chown -R $app $install_dir/{includes,files,upload}
 if [ -d "$install_dir/install" ]; then
