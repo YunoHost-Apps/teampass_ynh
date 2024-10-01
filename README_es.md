@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # Teampass para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://dash.yunohost.org/appci/app/teampass) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
 
 [![Instalar Teampass con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 
@@ -20,7 +20,7 @@ TeamPass is a Passwords Manager dedicated for managing passwords in a collaborat
 Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
 
-**Versión actual:** 3.0.0.23~ynh2
+**Versión actual:** 3.0.0.23~ynh3
 
 ## Capturas
 
@@ -36,7 +36,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 

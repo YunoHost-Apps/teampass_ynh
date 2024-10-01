@@ -7,7 +7,7 @@ name = "Teampass"
 description.en = "Passwords Manager"
 description.fr = "Gestionnaire de mots de passes"
 
-version = "3.0.0.23~ynh2"
+version = "3.0.0.23~ynh3"
 
 maintainers = []
 
@@ -69,8 +69,12 @@ ram.runtime = "50M"
         "php8.2-gd",
         "php8.2-curl",
         "php8.2-mysqli",
+        "php8.2-gmp",
+        "php8.2-mcrypt",
+        "openssl",
         "python3-bcrypt",
     ]
 
     [resources.database]
     type = "mysql"
+
