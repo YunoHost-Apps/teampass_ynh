@@ -46,10 +46,8 @@ fi
 # Create csrfp.config.php
 if [ ! -e "$install_dir/includes/libraries/csrfp/libs/csrfp.config.php" ]; then
     cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-    # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "CSRFP_TOKEN\" => \"" "&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
-    # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "jsUrl\" => \"" "&includes/libraries/csrfp/js/csrfprotector.js" $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
+    ynh_replace --match="CSRFP_TOKEN\" => \"" --replace="&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" --file=$install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne un token, valide en hexadécimal
+    ynh_replace --match="jsUrl\" => \"" --replace="&includes/libraries/csrfp/js/csrfprotector.js" --file=$install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Renseigne l'adresse de csrfprotector.js
 fi
 
 # Run database upgrades
