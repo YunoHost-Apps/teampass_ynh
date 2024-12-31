@@ -5,7 +5,9 @@
 
 # Teampass для YunoHost
 
-[![Уровень интеграции](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Состояние работы](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Состояние сопровождения](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Уровень интеграции](https://apps.yunohost.org/badge/integration/teampass)](https://ci-apps.yunohost.org/ci/apps/teampass/)
+![Состояние работы](https://apps.yunohost.org/badge/state/teampass)
+![Состояние сопровождения](https://apps.yunohost.org/badge/maintained/teampass)
 
 [![Установите Teampass с YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 

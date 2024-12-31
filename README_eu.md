@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # Teampass YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/teampass.svg)](https://ci-apps.yunohost.org/ci/apps/teampass/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/teampass.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/teampass.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/teampass)](https://ci-apps.yunohost.org/ci/apps/teampass/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/teampass)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/teampass)
 
 [![Instalatu Teampass YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=teampass)
 
