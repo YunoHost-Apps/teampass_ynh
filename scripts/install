@@ -1,13 +1,22 @@
 #!/bin/bash
 
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source _common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# INITIALIZE AND STORE SETTINGS
+#=================================================
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Setting up source files..."
 
+# Download, check integrity, uncompress and patch the source from manifest.toml
 ynh_setup_source --dest_dir="$install_dir"
 
 ynh_safe_rm "$install_dir/install"
@@ -51,27 +60,19 @@ ynh_script_progression "Adding $app's configuration..."
 
 ynh_config_add --template="settings.php" --destination="$install_dir/includes/config/settings.php"
 
-#=================================================
-# CREATE TP.CONFIG.PHP FILE
-#=================================================
-ynh_script_progression "Creating tp.config.php file..."
+mkdir /etc/$app/
 
-cp "$YNH_APP_BASEDIR/conf/maketpconfig.php" "$install_dir/"
+chown -R $app /etc/$app/
+chmod 750 /etc/$app/
+
+ynh_config_add --template="generatesalt.php" --destination="$install_dir/generatesalt.php"
 
 pushd $install_dir
-    ynh_exec_as_app "php$php_version" maketpconfig.php
+    ynh_exec_as_app "php$php_version" generatesalt.php
 popd
 
-ynh_safe_rm "$install_dir/maketpconfig.php"
+ynh_safe_rm "$install_dir/generatesalt.php"
 
-#=================================================
-# CREATE A SALTKEY
-#=================================================
-ynh_script_progression "Creating a saltkey..."
-
-saltkey=$(ynh_string_random --length=32)
-mkdir /etc/$app/
-ynh_config_add --template="sk.php" --destination="/etc/$app/sk.php"
 chown -R $app /etc/$app/
 chmod 750 /etc/$app/
 
@@ -113,8 +114,10 @@ ynh_replace --match="jsUrl\" => \"" --replace="&includes/libraries/csrfp/js/csrf
 #=================================================
 ynh_script_progression "Adding system configurations related to $app..."
 
+# Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
 ynh_config_add_phpfpm
 
+# Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
 
 ynh_config_add --template="cron" --destination="/etc/cron.d/$app"

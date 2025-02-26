@@ -14,7 +14,7 @@ maintainers = []
 [upstream]
 license = "AGPL-3.0"
 website = "http://www.teampass.net"
-admindoc = "https://teampass.readthedocs.io/en/latest/"
+admindoc = "https://documentation.teampass.net"
 code = "https://github.com/nilsteampassnet/TeamPass"
 
 [integration]
@@ -73,10 +73,10 @@ ram.runtime = "50M"
         "php8.2-mysqli",
         "php8.2-gmp",
         "php8.2-mcrypt",
+        "php8.2-ldap",
         "openssl",
         "python3-bcrypt",
     ]
 
     [resources.database]
     type = "mysql"
-

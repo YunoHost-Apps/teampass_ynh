@@ -1,1 +1,2 @@
+* * * * * __APP__ php__PHP_VERSION__ __INSTALL_DIR__/sources/scheduler.php
 0 0 * * 0 __APP__ cd __INSTALL_DIR__/backups && php__PHP_VERSION__ script.backup.php
