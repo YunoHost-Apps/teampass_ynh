@@ -31,7 +31,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 ## Documentatie en bronnen
 
 - Officiele website van de app: <http://www.teampass.net>
-- Officiele beheerdersdocumentatie: <https://teampass.readthedocs.io/en/latest/>
+- Officiele beheerdersdocumentatie: <https://documentation.teampass.net>
 - Upstream app codedepot: <https://github.com/nilsteampassnet/TeamPass>
 - YunoHost-store: <https://apps.yunohost.org/app/teampass>
 - Meld een bug: <https://github.com/YunoHost-Apps/teampass_ynh/issues>

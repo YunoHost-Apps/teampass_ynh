@@ -31,7 +31,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 ## Dokumentazioa eta baliabideak
 
 - Aplikazioaren webgune ofiziala: <http://www.teampass.net>
-- Administratzaileen dokumentazio ofiziala: <https://teampass.readthedocs.io/en/latest/>
+- Administratzaileen dokumentazio ofiziala: <https://documentation.teampass.net>
 - Jatorrizko aplikazioaren kode-gordailua: <https://github.com/nilsteampassnet/TeamPass>
 - YunoHost Denda: <https://apps.yunohost.org/app/teampass>
 - Eman errore baten berri: <https://github.com/YunoHost-Apps/teampass_ynh/issues>
