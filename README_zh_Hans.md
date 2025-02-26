@@ -31,7 +31,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 ## 文档与资源
 
 - 官方应用网站： <http://www.teampass.net>
-- 官方管理文档： <https://teampass.readthedocs.io/en/latest/>
+- 官方管理文档： <https://documentation.teampass.net>
 - 上游应用代码库： <https://github.com/nilsteampassnet/TeamPass>
 - YunoHost 商店： <https://apps.yunohost.org/app/teampass>
 - 报告 bug： <https://github.com/YunoHost-Apps/teampass_ynh/issues>

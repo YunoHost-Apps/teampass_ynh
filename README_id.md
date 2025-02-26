@@ -31,7 +31,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 ## Dokumentasi dan sumber daya
 
 - Website aplikasi resmi: <http://www.teampass.net>
-- Dokumentasi admin resmi: <https://teampass.readthedocs.io/en/latest/>
+- Dokumentasi admin resmi: <https://documentation.teampass.net>
 - Depot kode aplikasi hulu: <https://github.com/nilsteampassnet/TeamPass>
 - Gudang YunoHost: <https://apps.yunohost.org/app/teampass>
 - Laporkan bug: <https://github.com/YunoHost-Apps/teampass_ynh/issues>
