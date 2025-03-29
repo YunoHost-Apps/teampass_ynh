@@ -22,7 +22,7 @@ TeamPass is a Passwords Manager dedicated for managing passwords in a collaborat
 Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
 
-**Paketatutako bertsioa:** 3.0.0.23~ynh4
+**Paketatutako bertsioa:** 3.1.4.11~ynh1
 
 ## Pantaila-argazkiak
 
@@ -40,7 +40,7 @@ Teampass offers a large set of features permitting to manage your passwords and 
 
 Bidali `pull request`a [`testing` abarrera](https://github.com/YunoHost-Apps/teampass_ynh/tree/testing).
 
-`testing` abarra probatzeko, ondorengoa egin:
+`testing` abarra probatzeko, honakoa egin:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/teampass_ynh/tree/testing --debug

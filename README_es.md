@@ -3,7 +3,7 @@ Este archivo README esta generado automaticamente<https://github.com/YunoHost/ap
 No se debe editar a mano.
 -->
 
-# Teampass para Yunohost
+# Teampass para YunoHost
 
 [![Nivel de integración](https://apps.yunohost.org/badge/integration/teampass)](https://ci-apps.yunohost.org/ci/apps/teampass/)
 ![Estado funcional](https://apps.yunohost.org/badge/state/teampass)
@@ -22,7 +22,7 @@ TeamPass is a Passwords Manager dedicated for managing passwords in a collaborat
 Teampass offers a large set of features permitting to manage your passwords and related data in an organized way in respect to the access rights defined for each users.
 
 
-**Versión actual:** 3.0.0.23~ynh4
+**Versión actual:** 3.1.4.11~ynh1
 
 ## Capturas
 
