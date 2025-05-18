@@ -21,7 +21,7 @@ ynh_script_progression "Filling the database..."
 
 version=$(ynh_app_upstream_version)
 bcrypt_mdp=$(python3 -c 'import bcrypt, sys; print(bcrypt.hashpw(sys.stdin.read().strip().encode(), bcrypt.gensalt(rounds=10)).decode())' <<< "$password")
-timezone="$(cat /etc/timezone)"
+timezone="$(timedatectl show --value --property=Timezone)"
 time="$(date +%s)"
 
 # Remplacement des variables dans le fichier sql
