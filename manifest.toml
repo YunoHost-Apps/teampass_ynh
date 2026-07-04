@@ -7,7 +7,7 @@ name = "Teampass"
 description.en = "Passwords Manager"
 description.fr = "Gestionnaire de mots de passes"
 
-version = "3.0.0.23~ynh4"
+version = "3.2.0.7~ynh1"
 
 maintainers = []
 
@@ -48,8 +48,8 @@ ram.runtime = "50M"
 
 [resources]
     [resources.sources.main]
-    url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.0.23.tar.gz"
-    sha256 = "b010d1ea2cf0ace9fbeef30b448e864e3bc767f9f6e5beac79f0bf7e359005e7"
+    url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.2.0.7.tar.gz"
+    sha256 = "c8783f786c16b461b60027a9a2a56cfb12ff5c084f81ff1698057b71e72e4789"
 
     autoupdate.strategy = "latest_github_tag"
 
