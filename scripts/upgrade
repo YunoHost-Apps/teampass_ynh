@@ -8,7 +8,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression "Upgrading source files..."
 
-ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="includes/config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
+ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
 # Do not delete the install directory. Keep it for the manual upgrade process...
 # ynh_safe_rm "$install_dir/install"
 
