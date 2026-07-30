@@ -87,9 +87,9 @@ chmod 750 /etc/$app/
 #=================================================
 ynh_script_progression "Creating a csrfp..."
 
-cp $install_dir/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
-ynh_replace --match="CSRFP_TOKEN\" => \"" --replace="&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" --file="$install_dir/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne un token, valide en hexadécimal
-ynh_replace --match="jsUrl\" => \"" --replace="&includes/libraries/csrfp/js/csrfprotector.js" --file="$install_dir/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne l'adresse de csrfprotector.js
+cp $install_dir/app/includes/libraries/csrfp/libs/csrfp.config.sample.php $install_dir/app/includes/libraries/csrfp/libs/csrfp.config.php	# Créer le fichier de config de csrfp
+ynh_replace --match="CSRFP_TOKEN\" => \"" --replace="&$(head -n40 /dev/urandom | tr -c -d 'a-f0-9' | head -c50)" --file="$install_dir/app/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne un token, valide en hexadécimal
+ynh_replace --match="jsUrl\" => \"" --replace="&app/includes/libraries/csrfp/js/csrfprotector.js" --file="$install_dir/app/includes/libraries/csrfp/libs/csrfp.config.php"	# Renseigne l'adresse de csrfprotector.js
 
 #=================================================
 # CREATE THE USERS
