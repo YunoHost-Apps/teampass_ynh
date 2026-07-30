@@ -6,23 +6,23 @@ define("DB_PASSWD", "__DB_PWD__");
 define("DB_NAME", "__DB_NAME__");
 define("DB_PREFIX", "teampass_");
 define("DB_PORT", "3306");
-define("DB_ENCODING", "utf8");
-define("DB_SSL", array(
-    "key" => "",
-    "cert" => "",
-    "ca_cert" => "",
-    "ca_path" => "",
-    "cipher" => ""
-));
+define("DB_ENCODING", "utf8mb4");
+define("DB_SSL", false); // if DB over SSL then comment this line
+// if DB over SSL then uncomment the following lines
+//define("DB_SSL", array(
+//    "key" => "",
+//    "cert" => "",
+//    "ca_cert" => "",
+//    "ca_path" => "",
+//    "cipher" => ""
+//));
 define("DB_CONNECT_OPTIONS", array(
     MYSQLI_OPT_CONNECT_TIMEOUT => 10
 ));
-define("SECUREPATH", "/etc/__APP__/");
+define("IKEY", "");
+define("SKEY", "");
+define("HOST", "");
 
-if (isset($_SESSION['settings']['timezone']) === true) {
-    date_default_timezone_set($_SESSION['settings']['timezone']);
-}
-
-if (file_exists("/etc/__APP__/sk.php")) {
-    require_once "/etc/__APP__/sk.php";
+if (isset($session) === true && $session->has('system-timezone') && null !== $session->get('system-timezone')) {
+    date_default_timezone_set($session->get('system-timezone'));
 }

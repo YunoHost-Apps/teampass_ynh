@@ -7,7 +7,7 @@ name = "Teampass"
 description.en = "Passwords Manager"
 description.fr = "Gestionnaire de mots de passes"
 
-version = "3.0.0.23~ynh4"
+version = "3.2.1.3~ynh1"
 
 maintainers = []
 
@@ -23,9 +23,9 @@ helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
 
-ldap = false
+ldap = true
 
-sso = false
+sso = true
 
 disk = "50M"
 ram.build = "50M"
@@ -48,8 +48,8 @@ ram.runtime = "50M"
 
 [resources]
     [resources.sources.main]
-    url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.0.0.23.tar.gz"
-    sha256 = "b010d1ea2cf0ace9fbeef30b448e864e3bc767f9f6e5beac79f0bf7e359005e7"
+    url = "https://github.com/nilsteampassnet/TeamPass/archive/refs/tags/3.2.1.3.tar.gz"
+    sha256 = "cb85224fbd2f4235a6dd50f532827882dc27978d2d8f1e80087439aea5e2c6af"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -75,8 +75,11 @@ ram.runtime = "50M"
         "php8.2-mcrypt",
         "openssl",
         "python3-bcrypt",
+        "php8.2-ldap",
     ]
 
     [resources.database]
     type = "mysql"
 
+    [resources.composer]
+    version = "2.10.2"
