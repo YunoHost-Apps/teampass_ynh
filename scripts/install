@@ -135,7 +135,7 @@ chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
 chown -R $app:www-data "$install_dir"
 # Sauf certains dossiers includes, files et upload
-chown -R "$app" "$install_dir"/{includes,files,upload}
+chown -R "$app" "$install_dir"/app
 # Restreint l'accès au dossier de backup
 mkdir -p "$install_dir/backups"
 chmod 750 "$install_dir/backups"
