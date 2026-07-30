@@ -8,7 +8,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression "Upgrading source files..."
 
-ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="config/settings.php includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
+ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="app/config/settings.php app/includes/libraries/csrfp/libs/csrfp.config.php files upload backups"
 # Do not delete the install directory. Keep it for the manual upgrade process...
 # ynh_safe_rm "$install_dir/install"
 
@@ -18,7 +18,7 @@ ynh_setup_source --dest_dir="$install_dir" --full_replace --keep="config/setting
 ynh_script_progression "Updating tp.config.php file..."
 
 # The file tp.config.php is a dump of the admin part of the database.
-tp_config_file="$install_dir/includes/config/tp.config.php"
+tp_config_file="$install_dir/app/includes/config/tp.config.php"
 
 echo "<?php
 global \$SETTINGS;
@@ -36,11 +36,11 @@ echo ");" >> $tp_config_file
 #=================================================
 ynh_script_progression "Updating configuration..."
 
-ynh_config_add --template="settings.php" --destination="$install_dir/includes/config/settings.php"
+ynh_config_add --template="settings.php" --destination="$install_dir/app/config/settings.php"
 
 # Move settings.php from old teampass version
-if [ ! -e "$install_dir/includes/config/settings.php" ]; then
-    mv "$install_dir/includes/settings.php" "$install_dir/includes/config/settings.php"
+if [ ! -e "$install_dir/app/config/settings.php" ]; then
+    mv "$install_dir/includes/settings.php" "$install_dir/app/config/settings.php"
 fi
 
 # Create csrfp.config.php

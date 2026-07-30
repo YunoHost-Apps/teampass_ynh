@@ -49,7 +49,7 @@ ynh_safe_rm "$install_dir/populate.sql"
 #=================================================
 ynh_script_progression "Adding $app's configuration..."
 
-ynh_config_add --template="settings.php" --destination="$install_dir/config/settings.php"
+ynh_config_add --template="settings.php" --destination="$install_dir/app/config/settings.php"
 
 #=================================================
 # CREATE TP.CONFIG.PHP FILE
